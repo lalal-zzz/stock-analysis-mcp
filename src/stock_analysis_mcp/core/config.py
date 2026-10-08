@@ -77,7 +77,7 @@ def get_settings() -> Settings:
         default_stock, default_sector = root / "股票信息", root / "分析板块"
 
     def _dir(env_name: str | tuple[str, ...], toml_key: str, default: Path) -> Path:
-        toml_value = values.get(toml_key, "").strip()
+        toml_value = "" if any(os.environ.get(name) for name in data_envs) else values.get(toml_key, "").strip()
         fallback = Path(toml_value).expanduser() if toml_value else default
         return _env_path(env_name, fallback)
 

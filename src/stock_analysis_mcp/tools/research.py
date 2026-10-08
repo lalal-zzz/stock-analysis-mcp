@@ -169,6 +169,9 @@ def screen_rising_candidates(*, top_n: int = 20, lookback_days: int = 20,
             df = prepare_df("stocks", row.symbol, tail=420)
             if len(df) < MIN_PATTERN_BARS:
                 return None
+            expected = coverage.get("expected_trade_date")
+            if not expected or str(df.iloc[-1]["date"])[:10] != expected:
+                return {"scan_error":"stale or unverified calendar", "symbol":row.symbol}
             sigs = detect_patterns(df, row.symbol, row.name, requested_patterns, min_score=min_score)
             recent = [s for s in sigs if s["date"] >= cutoff and
                       (not strict or passes_filter(s, PATTERN_STRICT_FILTERS))]
@@ -184,15 +187,18 @@ def screen_rising_candidates(*, top_n: int = 20, lookback_days: int = 20,
             enriched["higher_timeframe"] = {"weekly": higher["weekly"], "monthly": higher["monthly"]}
             enriched["sectors"] = sectors[:10]
             return enriched
-        except Exception:
-            return None
+        except Exception as exc:
+            return {"scan_error":str(exc), "symbol":row.symbol}
 
     candidates = []
+    failed_scans = []
     for _row, result in run_parallel(list(universe.itertuples(index=False)), _scan_one,
                                      workers=max(1, min(int(workers), 16))):
         if isinstance(result, Exception):
             raise result
-        if result:
+        if result and "scan_error" in result:
+            failed_scans.append(result)
+        elif result:
             candidates.append(result)
     candidates.sort(key=lambda x: (x["score"], x["signal_date"]), reverse=True)
     results = candidates[:max(1, min(int(top_n), 100))]
@@ -204,7 +210,9 @@ def screen_rising_candidates(*, top_n: int = 20, lookback_days: int = 20,
             "coverage_ratio": coverage["coverage_ratio"],
             "full_market_ready": coverage["full_market_ready"],
             "warning": None if coverage["full_market_ready"] else "K线覆盖率不足95%，结果不代表完整市场",
-            "results": results}
+            "results": results, "failed_scans": failed_scans,
+            "warnings": (["部分股票扫描失败或行情过期"] if failed_scans else []) +
+                ([] if coverage["full_market_ready"] else ["复权一致性与新鲜度尚未覆盖95%的股票"])}
 
 
 async def prepare_stock_analysis(symbol: str, *, days: int = 500,
@@ -212,12 +220,15 @@ async def prepare_stock_analysis(symbol: str, *, days: int = 500,
                                  refresh_if_stale: bool = True) -> dict:
     """Build the numeric and visual evidence packet consumed by the analysis Skill."""
     sym = normalize_symbol(symbol)
+    from ..data.quality import latest_completed_trade_day
+    import asyncio
+    expected = await asyncio.to_thread(latest_completed_trade_day, allow_network=refresh_if_stale)
     klines = get_stock_kline_local(sym, max(days, MIN_PATTERN_BARS), "qfq")
-    stale = not klines or str(klines[-1].get("date", "")) < (date.today() - timedelta(days=7)).isoformat()
+    stale = not expected or not klines or str(klines[-1].get("date", "")) < expected
     if refresh_if_stale and (len(klines) < MIN_PATTERN_BARS or stale):
         await sync_stock_kline_universe([sym], target_bars=max(DEFAULT_RESEARCH_BARS, days), resume=False)
         klines = get_stock_kline_local(sym, max(days, DEFAULT_RESEARCH_BARS), "qfq")
-        stale = not klines or str(klines[-1].get("date", "")) < (date.today() - timedelta(days=7)).isoformat()
+        stale = not expected or not klines or str(klines[-1].get("date", "")) < expected
     if len(klines) < MIN_PATTERN_BARS:
         raise RuntimeError(f"{sym} K线不足: {len(klines)} < {MIN_PATTERN_BARS}")
     df = prepare_df("stocks", sym, tail=max(days, DEFAULT_RESEARCH_BARS))
@@ -241,8 +252,10 @@ async def prepare_stock_analysis(symbol: str, *, days: int = 500,
     return {"stock": basic[0] if basic else {"symbol": sym},
             "data_quality": {"bars": len(klines), "first_date": klines[0]["date"],
                              "last_date": klines[-1]["date"], "stale": stale,
+                             "expected_trade_date": expected,
                              "adjust_type": "qfq"},
             "timeframes": {k: v for k, v in periods.items() if k != "higher_score"},
             "key_levels": levels, "patterns": latest,
             "sector_context": sectors, "popularity": get_rank_trend(sym, 30),
-            "charts": charts, "warnings": [chart_warning] if chart_warning else []}
+            "charts": charts, "warnings": (["K线新鲜度未确认或存在缺口"] if stale else [])
+                                        + ([chart_warning] if chart_warning else [])}

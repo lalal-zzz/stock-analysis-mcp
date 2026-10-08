@@ -198,18 +198,67 @@ def fetch_kline_history(symbol: str, adjust: str = "qfq", limit: int = None,
         rows = _akshare_df_rows(df, symbol, fallback_start, fallback_end)
         if rows:
             for row in rows:
-                row.setdefault("source", "akshare")
+                row.setdefault("source", df.attrs.get("provider", "akshare"))
                 row.setdefault("adjust_type", adjust)
             return _clip_and_sort(rows, start, end, limit)
 
     # 3. 搜狐兜底 (不复权, 仅有腾讯+akshare都不可用时才会走到)
     from ..data.providers import sohu
 
+    if adjust:
+        return []
     rows = sohu.fetch_stock_kline_daily(symbol, start_date=start, end_date=end)
     for row in rows:
         row.setdefault("source", "sohu")
         row["adjust_type"] = ""
     return _clip_and_sort(rows, start, end, limit)
+
+
+def fetch_complete_history(symbol: str, adjust: str = "qfq") -> list[dict]:
+    """Download each provider's whole history independently, never splice providers."""
+    from datetime import date, timedelta
+    from .providers import tencent, sohu
+    from .quality import validate_prices
+    symbol = normalize_symbol(symbol)
+    from .quality import latest_completed_trade_day
+    anchor = latest_completed_trade_day() or date.today().isoformat()
+    pages = []
+    end = anchor
+    complete = False
+    for _ in range(12):
+        page = tencent.fetch_stock_kline(symbol, limit=5000, adjust=adjust,
+                                        start_date="19900101", end_date=end)
+        if not page:
+            # Failure midway is incomplete, never accept the partial prefix.
+            break
+        page = sorted(page, key=lambda r: str(r["date"]))
+        pages.extend(page)
+        if len(page) < 5000 or page[0]["date"] <= "1990-12-01":
+            complete = True
+            break
+        previous_end = (date.fromisoformat(page[0]["date"]) - timedelta(days=1)).isoformat()
+        if previous_end >= end:
+            break
+        end = previous_end
+    if complete:
+        rows = sorted({r["date"]: r for r in pages}.values(), key=lambda r: r["date"])
+        validate_prices(rows, adjust)
+        return rows
+    df = _akshare_daily(symbol, "19900101", anchor.replace("-", ""), adjust)
+    if df is not None and not df.empty:
+        rows = _akshare_df_rows(df, symbol, "19900101", anchor.replace("-", ""))
+        rows = sorted({str(r["date"])[:10]: r for r in rows}.values(), key=lambda r: str(r["date"]))
+        for r in rows:
+            r.update(date=str(r["date"])[:10], source=df.attrs.get("provider", "akshare"), adjust_type=adjust)
+        validate_prices(rows, adjust)
+        return rows
+    if not adjust:
+        rows = sohu.fetch_stock_kline_daily(symbol, start_date="19900101", end_date=anchor)
+        for r in rows:
+            r.update(source="sohu", adjust_type="")
+        validate_prices(rows, adjust)
+        return rows
+    return []
 
 
 def _akshare_daily(symbol: str, start: str, end: str, adjust: str):
@@ -223,12 +272,14 @@ def _akshare_daily(symbol: str, start: str, end: str, adjust: str):
     try:
         df = ak.stock_zh_a_daily(symbol=prefixed, start_date=start,
                                  end_date=end, adjust=adjust)
+        df.attrs["provider"] = "sina"
     except Exception:
         pass
     if df is None or df.empty:
         try:
             df = ak.stock_zh_a_hist_tx(symbol=prefixed, start_date=start,
                                        end_date=end, adjust=adjust, timeout=15)
+            df.attrs["provider"] = "tencent"
         except Exception:
             return None
     return df
@@ -450,10 +501,12 @@ def load_trade_dates() -> set:
                 if "trade_date" not in trade_dates.columns:
                     raise RuntimeError("akshare trade date response does not contain trade_date")
                 _trade_dates_cache = set(trade_dates["trade_date"].astype(str))
+                from .quality import cache_trade_dates
+                cache_trade_dates(_trade_dates_cache)
                 return _trade_dates_cache
             except Exception as e:
                 last_err = e
-                print(f"trade date check failed (attempt {attempt}/3): {e}", flush=True)
+                print(f"trade date check failed (attempt {attempt}/3): {e}", file=__import__("sys").stderr, flush=True)
                 time.sleep(2 * attempt)
         raise RuntimeError(f"failed to load trade dates: {last_err}")
 

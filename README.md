@@ -427,6 +427,13 @@ npm run test:node         # Node installer tests
 pytest -m integration     # Opt-in: real network + local DB writes
 ```
 
+## Data consistency and maintenance
+
+See [data repair and validation](docs/data-repair.md) for read-only audits, archived full-history repair,
+resumable retries, local zone alerts, reviewed rule activation, and daily-equity backtest outputs.
+Historical row coverage, current trading-day coverage, and verified price-basis coverage are reported separately.
+The installer includes chart dependencies. CI tests both supported MCP SDK generations before publishing.
+
 ## License
 
 MIT License

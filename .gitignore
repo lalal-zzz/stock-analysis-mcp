@@ -2,7 +2,7 @@ __pycache__/
 *.pyc
 *.pyo
 dist/
-build/
+/build/
 *.egg-info/
 .eggs/
 *.egg
@@ -10,3 +10,4 @@ build/
 node_modules/
 .env
 *.log
+.sdk-*/

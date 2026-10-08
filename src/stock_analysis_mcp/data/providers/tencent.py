@@ -33,6 +33,21 @@ MKLINE_URL = "https://ifzq.gtimg.cn/appstock/app/kline/mkline"
 BOARD_RANK_URL = "https://proxy.finance.qq.com/cgi/cgi-bin/rank/pt/getRank"
 QUOTE_URL = "https://qt.gtimg.cn/q="
 
+_request_lock = threading.Lock()
+_last_request = 0.0
+_http_get = http_get
+
+
+def http_get(*args, **kwargs):
+    """Bound aggregate request rate across downloader threads."""
+    global _last_request
+    with _request_lock:
+        delay = 0.3 - (time.monotonic() - _last_request)
+        if delay > 0:
+            time.sleep(delay)
+        _last_request = time.monotonic()
+    return _http_get(*args, **kwargs)
+
 PAGE_LIMIT = 640  # 单次请求最大条数, 超过会被服务端异常截断
 QUOTE_BATCH = 80  # qt.gtimg.cn 单请求代码数上限(实测 90+ 可用, 留余量)
 
@@ -75,7 +90,9 @@ def fetch_stock_kline(symbol: str, limit: int = 250, klt: str = "101",
         return []
 
     if klt in _KLT_MINUTE:
-        return _mkline(prefixed, symbol, klt, limit)
+        # mkline has no adjustment selector; never silently return raw bars
+        # for an adjusted request. The caller can use Eastmoney instead.
+        return [] if adjust else _mkline(prefixed, symbol, klt, limit)
     unit = _KLT_UNIT.get(klt, "day")
     return _daily_like(prefixed, symbol, unit, adjust, limit, start_date, end_date)
 
@@ -117,6 +134,7 @@ def _daily_like(prefixed: str, symbol: str, unit: str, adjust: str,
     rows_key = f"{fq_suffix}{unit}"
     start = _iso_date(start_date) if start_date else ""
     end = _iso_date(end_date) if end_date else ""
+    requested_start, requested_end = start, end
 
     all_rows: list = []
     for _ in range(10):  # 最多翻 10 页(640*10 根, 覆盖几十年)
@@ -131,7 +149,7 @@ def _daily_like(prefixed: str, symbol: str, unit: str, adjust: str,
         mark_provider_ok(PROVIDER)
 
         box = (payload.get("data") or {}).get(prefixed) or {}
-        rows = box.get(rows_key) or box.get(unit) or []
+        rows = box.get(rows_key) or []
         if not rows:
             break
         all_rows = rows + all_rows  # 接口按日期升序, 向前拼接
@@ -143,7 +161,12 @@ def _daily_like(prefixed: str, symbol: str, unit: str, adjust: str,
 
     if not all_rows:
         return []
-    return _normalize_rows(all_rows, symbol, "date")[-want:]
+    result = _normalize_rows(all_rows, symbol, "date")
+    result = [r for r in result if (not requested_start or r["date"] >= requested_start)
+              and (not requested_end or r["date"] <= requested_end)][-want:]
+    for row in result:
+        row.update(source=PROVIDER, adjust_type=adjust)
+    return result
 
 
 def _mkline(prefixed: str, symbol: str, klt: str, limit: int) -> list[dict]:

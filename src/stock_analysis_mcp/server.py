@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
-from mcp.types import Tool, TextContent
+from mcp.types import Tool, TextContent, ListToolsResult, CallToolResult
 
 from .tools.data_manager import (
     init_full_data,
@@ -35,6 +35,12 @@ from .strategies.trading_backtest import backtest_pattern_strategy
 from .strategies.similarity import find_cross_timeframe_similar_patterns
 
 server = Server("stock-analysis-mcp")
+
+
+def _sdk_decorator(method):
+    """SDK 1 uses decorators; SDK 2 uses constructor callbacks."""
+    decorator = getattr(server, method, None)
+    return decorator() if decorator else lambda function: function
 
 TOOL_HANDLERS = {}
 
@@ -106,6 +112,12 @@ async def _status() -> dict:
     "properties": {
         "conditions": {
             "type": "object",
+            "properties": {k: {"type": "number"} for k in (
+                "min_price", "max_price", "min_change_pct", "max_change_pct",
+                "min_volume_ratio", "min_turnover_rate", "max_turnover_rate",
+                "min_pe", "max_pe", "min_pb", "max_pb", "min_market_cap", "max_market_cap",
+                "min_float_market_cap", "min_sixty_day_change", "min_ytd_change",
+                "min_amplitude", "max_amplitude")},
             "description": (
                 "全部可选: min_price,max_price, min_change_pct,max_change_pct, "
                 "min_volume_ratio, min_turnover_rate,max_turnover_rate, "
@@ -114,7 +126,7 @@ async def _status() -> dict:
                 "min_amplitude,max_amplitude"
             ),
         },
-        "top_n": {"type": "integer", "description": "返回数量,默认50"},
+        "top_n": {"type": "integer", "minimum": 1, "maximum": 10000, "description": "返回数量,默认50"},
         "sort_by": {"type": "string", "description": (
             "change_pct/volume_ratio/turnover_rate/pe_dynamic/pb/"
             "total_market_cap/latest_price/volume/amplitude/popularity_rank"
@@ -126,6 +138,11 @@ async def _status() -> dict:
 })
 async def _screen(conditions=None, top_n=50, sort_by="change_pct",
                   sector_code=None, name_keyword=None) -> list[dict]:
+    for key, value in (conditions or {}).items():
+        if key.startswith("min_"):
+            maximum = (conditions or {}).get("max_" + key[4:])
+            if maximum is not None and value > maximum:
+                raise ValueError(f"{key} cannot exceed max_{key[4:]}")
     return await screen_stocks(conditions, top_n, sort_by, sector_code, name_keyword)
 
 
@@ -423,20 +440,27 @@ async def _similar_patterns(symbol, query_period="101", candidate_periods=None,
         "split": {"type": "string"},
         "buy_cost_bps": {"type": "number", "minimum": 0},
         "sell_cost_bps": {"type": "number", "minimum": 0},
+        "benchmark_symbol": {"type": "string"},
+        "slippage_bps": {"type": "number", "minimum": 0},
+        "initial_capital": {"type": "number", "minimum": 1},
+        "max_volume_fraction": {"type": "number", "minimum": 0.000001, "maximum": 1},
     }, "required": [],
 })
 async def _backtest_strategy(start="2010-01-01", end=None, patterns=None, sample=None,
                              workers=8, mode="both", split="2022-01-01",
-                             buy_cost_bps=8.0, sell_cost_bps=13.0):
+                             buy_cost_bps=8.0, sell_cost_bps=13.0, benchmark_symbol=None,
+                             slippage_bps=5.0, initial_capital=1_000_000, max_volume_fraction=0.01):
     return await asyncio.to_thread(backtest_pattern_strategy, start=start, end=end,
                                    patterns=patterns, sample=sample, workers=workers,
                                    mode=mode, split=split, buy_cost_bps=buy_cost_bps,
-                                   sell_cost_bps=sell_cost_bps)
+                                   sell_cost_bps=sell_cost_bps, benchmark_symbol=benchmark_symbol,
+                                   slippage_bps=slippage_bps, initial_capital=initial_capital,
+                                   max_volume_fraction=max_volume_fraction)
 
 
 # ═══════════════════ MCP 生命周期 ═══════════════════
 
-@server.list_tools()
+@_sdk_decorator("list_tools")
 async def list_tools() -> list[Tool]:
     return [
         Tool(name=n, description=i["description"], inputSchema=i["schema"])
@@ -447,13 +471,15 @@ async def list_tools() -> list[Tool]:
 def _validate_arguments(name: str, arguments, schema: dict) -> list[str]:
     """轻量 JSON-Schema 校验, 返回错误列表(空列表=通过)。"""
     errors = []
+    if arguments is not None and not isinstance(arguments, dict):
+        return ["参数必须为 JSON 对象"]
     props = schema.get("properties", {}) if isinstance(schema, dict) else {}
     args = arguments if isinstance(arguments, dict) else {}
     for req in schema.get("required", []) or []:
         if req not in args:
             errors.append(f"缺少必填参数: {req}")
     for key in args:
-        if props and key not in props:
+        if key not in props:
             errors.append(f"未知参数: {key}")
             continue
         rule = props.get(key, {})
@@ -477,15 +503,27 @@ def _validate_arguments(name: str, arguments, schema: dict) -> list[str]:
                 errors.append(f"参数 {key} 不能小于 {rule['minimum']}")
             if "maximum" in rule and value > rule["maximum"]:
                 errors.append(f"参数 {key} 不能大于 {rule['maximum']}")
+        if isinstance(value, list) and "items" in rule:
+            for index, item in enumerate(value):
+                errors.extend(_validate_arguments(name, {f"{key}[{index}]": item}, {
+                    "properties": {f"{key}[{index}]": rule["items"]}}))
+        if isinstance(value, dict) and "properties" in rule:
+            errors.extend(_validate_arguments(name, value, rule))
+        if isinstance(value, float):
+            import math
+            if not math.isfinite(value):
+                errors.append(f"参数 {key} 必须是有限数值")
     return errors
 
 
-@server.call_tool()
+@_sdk_decorator("call_tool")
 async def call_tool(name, arguments) -> list[TextContent]:
     info = TOOL_HANDLERS.get(name)
-    if not info:
-        return [TextContent(type="text", text=f"未知工具: {name}")]
     now = datetime.now(timezone.utc).isoformat()
+    if not info:
+        return [TextContent(type="text", text=json.dumps({"data": None,
+            "meta": {"source": "stock-analysis", "fetched_at": now}, "warnings": [],
+            "error": {"code": "UNKNOWN_TOOL", "message": f"未知工具: {name}"}}, ensure_ascii=False))]
     errors = _validate_arguments(name, arguments, info["schema"])
     if errors:
         envelope = {"data": None, "meta": {"source": "stock-analysis", "fetched_at": now},
@@ -506,6 +544,8 @@ async def call_tool(name, arguments) -> list[TextContent]:
             "warnings": warnings,
             "error": None,
         }
+        if isinstance(result, dict) and result.get("status") in {"error", "failed"}:
+            envelope["error"] = {"code": "DATA_ERROR", "message": str(result.get("error") or result.get("status"))}
         return [TextContent(type="text", text=json.dumps(envelope, ensure_ascii=False, default=str))]
     except Exception as e:
         envelope = {
@@ -515,6 +555,19 @@ async def call_tool(name, arguments) -> list[TextContent]:
             "error": {"code": "TOOL_ERROR", "message": str(e)},
         }
         return [TextContent(type="text", text=json.dumps(envelope, ensure_ascii=False))]
+
+
+if not hasattr(server, "list_tools"):
+    async def _sdk_list_tools(context, params):
+        return ListToolsResult(tools=await list_tools())
+
+    async def _sdk_call_tool(context, params):
+        content = await call_tool(params.name, params.arguments)
+        failed = bool(json.loads(content[0].text).get("error"))
+        return CallToolResult(content=content, isError=failed)
+
+    server = Server("stock-analysis-mcp", on_list_tools=_sdk_list_tools,
+                    on_call_tool=_sdk_call_tool)
 
 
 def main():

@@ -136,6 +136,7 @@ async def test_incremental_sync_only_processes_stale_symbols(monkeypatch):
 
     monkeypatch.setattr(sync, "query_stock_db", query)
     monkeypatch.setattr(sync, "_download_one_kline", download)
+    monkeypatch.setattr("stock_analysis_mcp.data.quality.latest_completed_trade_day", lambda **k: today.isoformat())
     result = await sync.sync_stock_kline_universe(
         ["current", "stale"], target_bars=320,
         resume=False, incremental=True,

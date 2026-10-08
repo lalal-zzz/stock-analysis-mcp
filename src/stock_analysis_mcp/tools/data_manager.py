@@ -53,17 +53,29 @@ async def search_stock_full(keyword: str, limit: int = 50) -> list[dict]:
 
 
 async def get_kline_local_or_net(symbol: str, days: int = 300, adjust: str = "qfq") -> list[dict]:
+    from ..data.network import normalize_symbol
+    symbol = normalize_symbol(symbol)
     klines = get_stock_kline_local(symbol, days, adjust)
+    from ..data.quality import latest_completed_trade_day
+    import asyncio
+    expected = await asyncio.to_thread(latest_completed_trade_day, allow_network=True)
     if klines:
         # 数据量达到请求的 8 成且最后一条在 7 天内才算可用, 否则重新下载
-        enough = len(klines) >= days * 0.8
+        enough = len(klines) >= days
         last_date = str(klines[-1].get("date", ""))[:10]
-        fresh = last_date >= (date.today() - timedelta(days=7)).isoformat()
+        fresh = bool(expected and last_date == expected)
         if enough and fresh:
             return klines
     # days 语义为交易日条数, 下载窗口按 1.55 倍换算为日历天数(覆盖节假日)
-    await sync_download_stock_kline(symbol, days=int(days * 1.55), adjust=adjust)
-    return get_stock_kline_local(symbol, days, adjust)
+    result = await sync_download_stock_kline(symbol, days=int(days * 1.8), adjust=adjust)
+    rows = get_stock_kline_local(symbol, days, adjust)
+    if result.get("status") in {"error", "empty", "degraded"}:
+        raise RuntimeError(f"K线更新失败，保留原数据: {result}")
+    if not expected:
+        raise RuntimeError("交易日历不可用，无法确认K线新鲜度；本地数据已保留")
+    if not rows or str(rows[-1].get("date", ""))[:10] < expected:
+        raise RuntimeError("K线未达到最新完成交易日；请检查停牌、退市或下载缺口")
+    return rows
 
 
 async def get_rank_trend_data(symbol: str, days: int = 30) -> list[dict]:

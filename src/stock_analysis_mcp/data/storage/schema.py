@@ -71,8 +71,10 @@ def _migrate_stock_schema(conn: sqlite3.Connection) -> None:
                        ("pattern_engine_version", PATTERN_ENGINE_VERSION)):
         conn.execute("INSERT OR REPLACE INTO meta(key,value,updated_at) VALUES(?,?,?)", (key, value, now))
     # Backfill coverage for legacy databases so status reflects existing usable data.
+    if conn.execute("SELECT 1 FROM data_coverage WHERE data_type='stock_kline' LIMIT 1").fetchone():
+        return
     conn.execute("""
-        INSERT OR REPLACE INTO data_coverage
+        INSERT OR IGNORE INTO data_coverage
             (data_type,symbol,period,adjust_type,first_date,last_date,row_count,source,
              status,data_version,updated_at)
         SELECT 'stock_kline',symbol,'daily',adjust_type,MIN(date),MAX(date),COUNT(*),
@@ -87,6 +89,16 @@ def _migrate_sector_schema(conn: sqlite3.Connection) -> None:
     for name in ("source", "fetched_at"):
         if name not in cols:
             conn.execute(f"ALTER TABLE sector_kline ADD COLUMN {name} TEXT")
+    indicators = _table_columns(conn, "sector_indicators")
+    for name, ddl in (("indicator_version", "TEXT DEFAULT 'legacy'"), ("MA120", "REAL"),
+        ("MA250", "REAL"), ("VOL_MA20", "REAL"), ("VOL_RATIO5", "REAL"),
+        ("VOL_RATIO20", "REAL"), ("ATR_PCT", "REAL"), ("BIAS20", "REAL"),
+        ("BIAS60", "REAL"), ("BIAS250", "REAL"), ("RETURN_5", "REAL"),
+        ("RETURN_10", "REAL"), ("RETURN_20", "REAL"), ("RETURN_60", "REAL"),
+        ("HIGH_20", "REAL"), ("HIGH_60", "REAL"), ("HIGH_120", "REAL"),
+        ("LOW_20", "REAL"), ("LOW_60", "REAL"), ("LOW_120", "REAL")):
+        if name not in indicators:
+            conn.execute(f"ALTER TABLE sector_indicators ADD COLUMN {name} {ddl}")
     conn.execute("INSERT OR REPLACE INTO meta(key,value,updated_at) VALUES(?,?,?)",
                  ("schema_version", SCHEMA_VERSION, datetime.now().isoformat()))
 

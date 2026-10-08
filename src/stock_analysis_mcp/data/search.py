@@ -385,7 +385,7 @@ def screen_stocks_local(
             chunk_in = ",".join("?" for _ in chunk)
             chunk_params = params + chunk + [top_n]
             rows.extend(query_stock_db(
-                sql.format(where_sql=f"s.symbol IN ({chunk_in})"), tuple(chunk_params)))
+                sql.format(where_sql=f"{where_sql} AND s.symbol IN ({chunk_in})"), tuple(chunk_params)))
         if sort_col == "popularity_rank":
             rows.sort(key=lambda r: (r["popularity_rank"] is None,
                                      r["popularity_rank"] if r["popularity_rank"] is not None else 0))
@@ -406,6 +406,9 @@ def screen_stocks_local(
 # ════════════════════════════════════════
 
 def get_db_status() -> dict:
+    from .quality import latest_completed_trade_day
+    from ..core.constants import INDICATOR_VERSION
+    expected = latest_completed_trade_day()
     basic = query_stock_db("SELECT COUNT(*) AS n FROM stock_basic")[0]["n"]
     coverage = query_stock_db(
         """SELECT COUNT(DISTINCT CASE WHEN row_count>=260 THEN symbol END) AS symbols,
@@ -415,6 +418,23 @@ def get_db_status() -> dict:
            FROM data_coverage WHERE data_type='stock_kline' AND period='daily' AND adjust_type='qfq'""")
     cov = coverage[0] if coverage else {}
     covered = int(cov.get("symbols") or 0)
+    fresh = query_stock_db("""SELECT COUNT(*) AS n FROM data_coverage
+        WHERE data_type='stock_kline' AND period='daily' AND adjust_type='qfq'
+        AND status='ready' AND row_count>=260 AND last_date=?""", (expected or "9999-12-31",))[0]["n"]
+    has_verification = query_stock_db("SELECT 1 FROM sqlite_master WHERE name='history_repair_state'")
+    verified = query_stock_db("""SELECT COUNT(*) AS n FROM history_repair_state h
+        JOIN data_coverage c ON c.symbol=h.symbol AND c.adjust_type=h.adjust_type
+        WHERE h.adjust_type='qfq' AND h.status='repaired' AND h.last_date=?
+        AND c.data_type='stock_kline' AND c.status='ready' AND c.row_count>=260""",
+        (expected or "9999-12-31",))[0]["n"] if has_verification else 0
+    sector_count = query_sector_db("SELECT COUNT(*) AS n FROM sector_basic")[0]["n"]
+    sector_ready = query_sector_db("""SELECT COUNT(*) AS n FROM (
+        SELECT sector_code FROM sector_kline GROUP BY sector_code
+        HAVING COUNT(*)>=260 AND MAX(trade_date)>=?)""", (expected or "9999-12-31",))[0]["n"]
+    sector_indicators = query_sector_db("""SELECT COUNT(DISTINCT sector_code) AS n
+        FROM sector_indicators WHERE trade_date>=? AND indicator_version=?""",
+        (expected or "9999-12-31", INDICATOR_VERSION))[0]["n"]
+    from ..alerts.storage import list_alert_events
     return {
         "stock": {
             "count": get_meta_stock("stock_count") or str(basic),
@@ -426,10 +446,18 @@ def get_db_status() -> dict:
                 "failed": int(cov.get("failed") or 0),
                 "latest_date": cov.get("latest_date"),
                 "coverage_ratio": round(covered / basic, 4) if basic else 0.0,
-                "full_market_ready": bool(basic and covered / basic >= 0.95),
+                "fresh_symbols": fresh,
+                "fresh_coverage_ratio": round(fresh / basic, 4) if basic else 0.0,
+                "expected_trade_date": expected,
+                "verified_basis_symbols": verified,
+                "full_market_ready": bool(expected and basic and verified / basic >= 0.95),
+                "full_history_complete": False,
             },
         },
         "sector": {
+            "kline_coverage": {"ready": sector_ready, "total": sector_count,
+                "coverage_ratio": sector_ready / sector_count if sector_count else 0.0},
+            "indicator_coverage": {"ready": sector_indicators, "version": INDICATOR_VERSION},
             "count": get_meta_sector("sector_count"),
             "sector_updated": get_meta_sector("sector_updated"),
             "kline_updated": get_meta_sector("kline_updated"),
@@ -439,4 +467,6 @@ def get_db_status() -> dict:
             "stock_db": get_db_paths()["stock_db"],
             "sector_db": get_db_paths()["sector_db"],
         },
+        "warnings": [] if expected else ["交易日历未确认；历史条数覆盖率不代表最新数据覆盖率"],
+        "alerts": {"recent_events": list_alert_events(limit=10)},
     }

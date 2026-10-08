@@ -61,7 +61,10 @@ def passes_filter(sig: dict, filters: dict | None = None) -> bool:
 
     因子缺失/NaN 不通过。
     """
-    f = (filters if filters is not None else PATTERN_FILTERS).get(sig["pattern"])
+    if filters is None:
+        from ..rule_registry import active_filters
+        filters = {**PATTERN_FILTERS, **(active_filters(str(sig.get("date", ""))) or {})}
+    f = filters.get(sig["pattern"])
     if not f:
         return True
     for key, cond in f.items():

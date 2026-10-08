@@ -3,6 +3,8 @@ data/storage/writer.py — 行级写入 (INSERT OR REPLACE) 通用模板与各�
 """
 
 import json
+import zlib
+from itertools import groupby
 from datetime import datetime
 
 from ...core.constants import INDICATOR_VERSION, PATTERN_ENGINE_VERSION
@@ -61,13 +63,63 @@ def save_stock_kline(rows: list[dict]):
     payload = [{**r, "adjust_type": r["adjust_type"] if "adjust_type" in r and r["adjust_type"] is not None else "qfq",
                 "source": r.get("source") or "unknown",
                 "fetched_at": r.get("fetched_at") or now} for r in rows]
-    if _table_has_adjust_pk("stock_kline"):
-        return _save_rows(get_stock_db, "stock_kline", _STOCK_KLINE_COLS, payload)
-    # 旧库主键无 adjust_type: qfq 走主表, 其余复权进 variants 表 (避免整库迁移)
-    primary = [r for r in payload if r["adjust_type"] == "qfq"]
-    variants = [r for r in payload if r["adjust_type"] != "qfq"]
-    return (_save_rows(get_stock_db, "stock_kline", _STOCK_KLINE_COLS, primary)
-            + _save_rows(get_stock_db, "stock_kline_variants", _STOCK_KLINE_COLS, variants))
+    from ..quality import check_price_basis, validate_prices
+    with _write_conn(get_stock_db()) as conn:
+        for (symbol, adjust), group in groupby(sorted(payload, key=lambda r: (r["symbol"], r["adjust_type"])),
+                                              key=lambda r: (r["symbol"], r["adjust_type"])):
+            batch = list(group)
+            if all(r["source"] != "unknown" for r in batch):
+                validate_prices(batch, adjust)
+                check_price_basis(_history(conn, symbol, adjust), batch, adjust)
+            _insert_klines(conn, batch)
+    return len(payload)
+
+
+def _history(conn, symbol, adjust):
+    # Explicit columns support legacy schemas with a different column order.
+    columns = ','.join(_STOCK_KLINE_COLS)
+    return [dict(r) for r in conn.execute(f"""SELECT {columns} FROM stock_kline WHERE symbol=? AND adjust_type=?
+        UNION ALL SELECT {columns} FROM stock_kline_variants WHERE symbol=? AND adjust_type=? ORDER BY date""",
+        (symbol, adjust, symbol, adjust))]
+
+
+def _insert_klines(conn, rows):
+    pk = [r[1] for r in sorted(conn.execute("PRAGMA table_info(stock_kline)"), key=lambda r: r[5]) if r[5]]
+    modern = pk == ["symbol", "date", "adjust_type"]
+    for table, batch in (("stock_kline", [r for r in rows if modern or r["adjust_type"] == "qfq"]),
+                         ("stock_kline_variants", [r for r in rows if not modern and r["adjust_type"] != "qfq"])):
+        if batch:
+            conn.executemany(f"INSERT OR REPLACE INTO {table} ({','.join(_STOCK_KLINE_COLS)}) "
+                f"VALUES ({','.join(':'+c for c in _STOCK_KLINE_COLS)})",
+                [{c: r.get(c) for c in _STOCK_KLINE_COLS} for r in batch])
+
+
+def replace_stock_history(symbol: str, adjust: str, rows: list[dict], *, reason: str) -> str:
+    """Archive and atomically replace one complete price history, never the database."""
+    from ..quality import validate_prices
+    validate_prices(rows, adjust)
+    if not rows or any(r.get("symbol") != symbol for r in rows):
+        raise ValueError("replacement must contain one nonempty symbol")
+    if len({r.get("source") for r in rows}) != 1:
+        raise ValueError("complete history must use one provider")
+    now = datetime.now().isoformat()
+    batch_id = f"{symbol}:{adjust}:{now}"
+    payload = [{**r, "adjust_type": adjust, "fetched_at": now} for r in rows]
+    with _write_conn(get_stock_db()) as conn:
+        existing = _history(conn, symbol, adjust)
+        if existing and min(r["date"] for r in rows) > min(r["date"] for r in existing):
+            raise ValueError("replacement would truncate existing history; preserved original data")
+        conn.execute("""CREATE TABLE IF NOT EXISTS kline_repair_archive (
+            batch_id TEXT PRIMARY KEY,symbol TEXT,adjust_type TEXT,reason TEXT,
+            created_at TEXT,history_zlib BLOB)""")
+        conn.execute("INSERT INTO kline_repair_archive VALUES(?,?,?,?,?,?)", (batch_id, symbol,
+            adjust, reason, now, zlib.compress(json.dumps(existing, default=str).encode())))
+        for table in ("stock_kline", "stock_kline_variants", "stock_indicators", "stock_indicator_variants"):
+            conn.execute(f"DELETE FROM {table} WHERE symbol=? AND adjust_type=?", (symbol, adjust))
+        conn.execute("DELETE FROM pattern_signals WHERE universe='stocks' AND symbol=?", (symbol,))
+        conn.execute("DELETE FROM structure_snapshots WHERE universe='stocks' AND symbol=?", (symbol,))
+        _insert_klines(conn, payload)
+    return batch_id
 
 
 def save_stock_spot(rows: list[dict]):
@@ -161,11 +213,15 @@ def save_sector_member(rows: list[dict]):
 
 
 def save_sector_indicators(rows: list[dict]):
-    return _save_rows(get_sector_db, "sector_indicators", ["sector_code", "trade_date",
+    payload = [{**r, "indicator_version": INDICATOR_VERSION} for r in rows]
+    return _save_rows(get_sector_db, "sector_indicators", ["sector_code", "trade_date", "indicator_version",
+        "MA120", "MA250", "VOL_MA20", "VOL_RATIO5", "VOL_RATIO20", "ATR_PCT",
+        "BIAS20", "BIAS60", "BIAS250", "RETURN_5", "RETURN_10", "RETURN_20", "RETURN_60",
+        "HIGH_20", "HIGH_60", "HIGH_120", "LOW_20", "LOW_60", "LOW_120",
         "MA5", "MA10", "MA20", "MA30", "MA60", "MA100", "MA200",
         "RSI6", "RSI14", "RSI24",
         "DIF", "DEA", "MACD",
         "BOLL_UPPER", "BOLL_MIDDLE", "BOLL_LOWER",
         "KDJ_K", "KDJ_D", "KDJ_J",
         "VOL_MA5", "VOL_MA10",
-        "ATR14"], rows)
+        "ATR14"], payload)

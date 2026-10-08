@@ -65,4 +65,8 @@ Resolution is environment variable → `~/.stock-analysis/config.toml` → platf
 
 ## Completion report
 
+For inconsistent adjustment histories, run `data-audit` before `data-repair`; consult `docs/data-repair.md`.
+Do not treat raw Sohu bars as adjusted bars or merge partial histories from different providers.
+Report verified-basis and fresh trading-day coverage separately from historical row coverage.
+
 Return the expected trading date, latest date and coverage for each updated dataset, successes/failures, provider warnings, and remaining gaps. Never say “full-market update complete” below 95% coverage.

@@ -25,7 +25,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "mcp[cli]>=1.0.0",
+    "mcp[cli]>=1.0.0,<3",
     "akshare>=1.14.0",
     "pandas>=2.0.0",
     "numpy>=1.24.0",
@@ -33,6 +33,7 @@ dependencies = [
     "urllib3>=2.0.0",
     "pycryptodome>=3.19.0",  # guba 年文件 AES-CBC 解密 (data/sources.py)
     "tqdm>=4.60.0",
+    "tzdata>=2024.1",
 ]
 
 [project.optional-dependencies]
@@ -65,6 +66,7 @@ include = [
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+pythonpath = ["src"]
 markers = [
     "integration: 真实网络+写库的集成测试, 需显式 pytest -m integration 运行",
 ]

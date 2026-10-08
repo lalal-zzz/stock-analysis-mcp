@@ -16,6 +16,14 @@ class ZoneRule:
     invalidated: bool = False
 
     def __post_init__(self):
+        import math
+        if not all(math.isfinite(x) for x in (self.lower, self.upper, self.approach_pct,
+                                              self.break_buffer_pct, self.reset_pct)):
+            raise ValueError("zone values must be finite")
+        if not self.zone_id or not self.symbol or self.timeframe not in {"1","5","15","30","60","101","102","103","daily","weekly","monthly"}:
+            raise ValueError("zone id, symbol and supported timeframe required")
+        if min(self.approach_pct, self.break_buffer_pct, self.reset_pct) < 0:
+            raise ValueError("zone buffers must be nonnegative")
         if self.lower > self.upper:
             raise ValueError("zone lower cannot exceed upper")
         if self.lower <= 0:
@@ -29,6 +37,15 @@ class PriceUpdate:
     high: float | None = None
     low: float | None = None
     closed: bool = False
+
+    def __post_init__(self):
+        import math
+        if not self.timestamp or not math.isfinite(self.close) or self.close <= 0:
+            raise ValueError("valid timestamp and positive finite raw close required")
+        if any(v is not None and not math.isfinite(v) for v in (self.high, self.low)):
+            raise ValueError("high and low must be finite")
+        if self.high is not None and self.low is not None and self.high < self.low:
+            raise ValueError("high cannot be below low")
 
 
 @dataclass

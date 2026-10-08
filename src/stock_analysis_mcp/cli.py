@@ -101,6 +101,30 @@ def _build_parser() -> argparse.ArgumentParser:
     sub.add_parser("pattern-backtest", help="形态历史回测 (详见 strategies/pattern_backtest.py)")
     sub.add_parser("pattern-optimize", help="形态参数优化 (详见 strategies/pattern_optimize.py)")
 
+    for command in ("data-audit", "data-repair"):
+        maintenance = sub.add_parser(command, help="数据完整性审计 / 可恢复的全历史修复")
+        add_common(maintenance)
+        maintenance.add_argument("--symbols", default=None)
+        maintenance.add_argument("--adjust", choices=("all", "qfq", "hfq", "raw"), default="all")
+        maintenance.add_argument("--max-jobs", type=int, default=None)
+        maintenance.add_argument("--output", default=None)
+        maintenance.add_argument("--with-sectors", action="store_true")
+    alerts = sub.add_parser("alerts-watch", help="持续评估配置的价格区域，事件写入本地库")
+    alerts.add_argument("--rules", required=True, help="ZoneRule JSON数组；价格为不复权口径")
+    alerts.add_argument("--poll-seconds", type=float, default=60)
+    alerts.add_argument("--max-polls", type=int, default=0)
+    alerts.add_argument("--data-dir", default=None)
+    restore = sub.add_parser("data-restore", help="恢复指定修复归档批次，同时归档当前价格")
+    restore.add_argument("--batch-id", required=True)
+    restore.add_argument("--data-dir", default=None)
+    rules = sub.add_parser("strategy-rule", help="候选规则提案、人工批准启用与回滚")
+    rules.add_argument("action", choices=("propose", "activate", "rollback", "status"))
+    rules.add_argument("--registry", required=True)
+    rules.add_argument("--filters", default=None)
+    rules.add_argument("--evidence", default=None)
+    rules.add_argument("--version", default=None)
+    rules.add_argument("--approved-by", default=None)
+    rules.add_argument("--effective-date", default=None)
     return p
 
 
@@ -231,6 +255,50 @@ def main(argv: list[str] | None = None) -> int:
     args, remaining = _build_parser().parse_known_args(argv)
     if getattr(args, "data_dir", None):          # 数据目录覆盖 (等价 STOCK_ANALYSIS_DATA_DIR)
         os.environ["STOCK_ANALYSIS_DATA_DIR"] = args.data_dir
+    if args.command in {"data-audit", "data-repair"}:
+        from .data.repair import audit_data, repair_data
+        if remaining:
+            return 2
+        symbols = args.symbols.split(",") if args.symbols else None
+        adjustments = ("qfq", "hfq", "") if args.adjust == "all" else ("" if args.adjust == "raw" else args.adjust,)
+        report = (audit_data(symbols) if args.command == "data-audit" else
+                  repair_data(symbols=symbols, adjustments=adjustments, dry_run=args.dry_run,
+                              max_jobs=args.max_jobs, output=args.output, with_sectors=args.with_sectors))
+        if args.output and (args.command == "data-audit" or args.dry_run):
+            from pathlib import Path
+            path = Path(args.output)
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+        summary = {k:v for k,v in report.items() if k not in {"jobs", "results"}} if args.output else report
+        print(json.dumps(summary, ensure_ascii=False, indent=2))
+        return 1 if report.get("status") == "partial" else 0
+    if args.command == "alerts-watch":
+        if remaining:
+            return 2
+        from .alerts.service import watch_zones
+        return watch_zones(args.rules, poll_seconds=args.poll_seconds, max_polls=args.max_polls)
+    if args.command == "data-restore":
+        if remaining:
+            return 2
+        from .data.restore import restore_history
+        print(json.dumps(restore_history(args.batch_id), ensure_ascii=False, indent=2))
+        return 0
+    if args.command == "strategy-rule":
+        from .strategies.rule_registry import propose, activate, read_registry
+        from pathlib import Path
+        if remaining:
+            return 2
+        if args.action == "propose":
+            filters = json.loads(Path(args.filters).read_text(encoding="utf-8"))
+            print(propose(args.registry, filters, evidence=args.evidence))
+        elif args.action in {"activate", "rollback"}:
+            if not args.version or not args.approved_by or not args.effective_date:
+                raise ValueError("version, approved-by and effective-date required")
+            activate(args.registry, args.version, approved_by=args.approved_by,
+                     effective_date=args.effective_date, rollback=args.action == "rollback")
+        else:
+            print(json.dumps(read_registry(args.registry), ensure_ascii=False, indent=2))
+        return 0
 
     handlers = {
         "rebuild": _cmd_rebuild,

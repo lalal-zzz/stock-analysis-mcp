@@ -22,7 +22,7 @@ The first research horizon is 5–20 trading days. Automatic order placement, li
 
 ### Data reliability
 
-- Preserve the original 15 MCP APIs and add four research APIs, for 19 total.
+- Preserve the original 15 MCP APIs and add five research APIs, for 20 total.
 - Support `quick`, `research` (at least 320 daily bars per eligible stock), and resumable long-history `full` initialization.
 - Reuse existing databases. Legacy K-line/indicator schemas migrate in place without copying or deleting multi-gigabyte files.
 - Distinguish QFQ/HFQ/unadjusted data by adjustment type and retain provider/fetch metadata.
@@ -69,13 +69,24 @@ forming → candidate → triggered → confirmed → retesting
 - Reports include JSON, Markdown and trade CSV paths plus portfolio return, drawdown, payoff and Sharpe where defined.
 - Backtest and optimizer code never writes production pattern filters.
 
-## Remaining hardening
+## Hardening implemented (2026-10-08)
 
-- Add a scheduler-friendly retry queue for sector-history gaps after Eastmoney circuit-breaker cooldown.
-- Expand integration fixtures for provider schema changes, holidays, suspended/delisted stocks and adjustment transitions.
-- Add explicit data-version/status reporting for sector-indicator coverage.
-- Add portfolio benchmark/exposure series and richer slippage/liquidity models.
-- Add a reviewed-rule registry with human approval, activation date, rollback metadata and walk-forward comparison.
+- SDK 1/2 stdio compatibility and recursive argument validation.
+- Archived whole-series repair, strict adjustment degradation, provider-change and overlap-price guards.
+- Calendar freshness, verified-basis coverage, and explicit unresolved inactive-stock gaps.
+- Persistent sector retry queue, sector indicator versions, local alert polling and atomic event storage.
+- Daily portfolio valuation, deferred limit-down exits, gap-stop execution, liquidity/slippage inputs,
+  optional benchmark/exposure series, and train-only factor thresholds.
+- Opt-in reviewed rule registry with effective dates and attributed activation/rollback.
+- Python/Node CI matrix, publication checks and chart dependencies in managed installations.
+
+## Remaining evidence and modeling limits
+
+- Classify historical gaps using authoritative listing, suspension and delisting records; never invent missing bars.
+- Validate additional live provider revisions beyond unit fixtures and the selected-stock repair smoke test.
+- Keep execution limitations explicit: no tick-level queue/fill model and no automatic live order placement.
+- A common raw-price/adjustment-factor engine is a separate redesign; current ingestion keeps each provider's
+  complete adjustment series independent and prevents incompatible appends.
 
 ## Acceptance criteria
 

@@ -9,7 +9,13 @@ import { appConfigPath, appRoot } from "../lib/paths.js"
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)))
 const [command = "help", ...args] = process.argv.slice(2)
-const value = (name) => args[args.indexOf(name) + 1]
+const value = (name) => {
+  const index = args.indexOf(name)
+  if (index < 0) return undefined
+  const next = args[index + 1]
+  if (!next || next.startsWith("--")) throw new Error(`${name} requires a value`)
+  return next
+}
 const print = (data) => console.log(typeof data === "string" ? data : JSON.stringify(data, null, 2))
 async function requestedDataRoot() {
   const supplied = value("--data-root")

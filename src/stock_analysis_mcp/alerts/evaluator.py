@@ -80,7 +80,7 @@ def evaluate_zone(rule: ZoneRule, state: AlertState | None,
 
     reset_far = (update.close > rule.upper * (1 + rule.reset_pct)
                  or update.close < rule.lower * (1 - rule.reset_pct))
-    if reset_far and previous == relation and previous in {"above", "below"} and not events:
+    if reset_far and previous == relation and previous in {"above", "below"} and not events and state.emitted:
         state.episode += 1
         state.emitted.clear()
     state.relation = relation

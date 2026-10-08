@@ -250,7 +250,9 @@ async def init_all_data(include_sector_members: bool = True, quick: bool = False
     else:
         _step("跳过成分股下载")
 
-    return {"status": "ok", "mode": mode, "log": log, "paths": get_db_paths()}
+    partial = (not all_sectors or not kline_total or
+               (mode in {"research", "full"} and synced.get("status") != "ok"))
+    return {"status": "partial" if partial else "ok", "mode": mode, "log": log, "paths": get_db_paths()}
 
 
 # ═══════════════════ 增量每日更新 ═══════════════════
@@ -421,25 +423,43 @@ async def update_daily_all(include_sector_members: bool = True,
 async def _download_one_kline(symbol: str, days: int = 560, adjust: str = "qfq",
                               ready_bars: int = 260,
                               start_date: str | None = None) -> dict:
-    end = date.today()
+    from .network import normalize_symbol
+    from .quality import latest_completed_trade_day
+    symbol = normalize_symbol(symbol)
+    expected = latest_completed_trade_day()
+    end = date.fromisoformat(expected) if expected else date.today()
     try:
         start = (date.fromisoformat(start_date[:10]) if start_date
                  else end - timedelta(days=days + 30))
         from ..tools.stock_data import get_stock_history
-        klines = await get_stock_history(
-            symbol, start_date=start.strftime("%Y%m%d"),
-            end_date=end.strftime("%Y%m%d"), adjust=adjust,
-        )
+        if ready_bars >= 4000:
+            from .sources import fetch_complete_history
+            klines = await asyncio.to_thread(fetch_complete_history, symbol, adjust)
+        else:
+            klines = await get_stock_history(
+                symbol, start_date=start.strftime("%Y%m%d"),
+                end_date=end.strftime("%Y%m%d"), adjust=adjust,
+            )
         if klines:
             for row in klines:
                 row.setdefault("adjust_type", adjust)
                 row.setdefault("source", "multi-provider")
-            save_stock_kline(klines)
+            from .quality import PriceBasisChanged
+            try:
+                save_stock_kline(klines)
+            except PriceBasisChanged as changed:
+                from .sources import fetch_complete_history
+                from .storage.writer import replace_stock_history
+                complete = await asyncio.to_thread(fetch_complete_history, symbol, adjust)
+                if not complete:
+                    raise PriceBasisChanged(f"{changed}; full refresh unavailable, original data preserved")
+                await asyncio.to_thread(replace_stock_history, symbol, adjust, complete, reason=str(changed))
+                klines = complete
             adjust_types = {r.get("adjust_type", adjust) for r in klines}
             coverage_adjust = next(iter(adjust_types)) if len(adjust_types) == 1 else adjust
             from .search import get_stock_kline_local
             local_klines = get_stock_kline_local(
-                symbol, limit=max(320, int(ready_bars)), adjust=coverage_adjust)
+                symbol, limit=100000, adjust=coverage_adjust)
             if not local_klines:
                 local_klines = sorted(klines, key=lambda r: str(r.get("date", "")))
             stats = query_stock_db(
@@ -471,10 +491,11 @@ async def _download_one_kline(symbol: str, days: int = 560, adjust: str = "qfq",
                 save_data_coverage("stock_indicators", symbol, adjust_type=coverage_adjust,
                                    first_date=first_date, last_date=last_date,
                                    row_count=len(local_klines), status="ready")
+            price_status = ("ready" if expected and last_date == expected and total_rows >= ready_bars else "partial")
             save_data_coverage("stock_kline", symbol, adjust_type=coverage_adjust,
                                first_date=first_date, last_date=last_date,
                                row_count=total_rows, source=source,
-                               status="ready" if total_rows >= ready_bars else "partial")
+                               status=price_status)
             result_status = "ok" if coverage_adjust == adjust else "degraded"
             return {"status": result_status, "symbol": symbol, "count": len(klines),
                     "total_count": total_rows,
@@ -517,14 +538,17 @@ async def sync_stock_kline_universe(symbols: list[str] | None = None,
         (adjust,),
     )
     coverage_by_symbol = {r["symbol"]: r for r in coverage_rows}
+    from .quality import latest_completed_trade_day
+    expected = latest_completed_trade_day()
     if incremental:
-        today = date.today().isoformat()
+        today = expected or date.today().isoformat()
         pending = [s for s in symbols
                    if not coverage_by_symbol.get(s)
                    or str(coverage_by_symbol[s].get("last_date") or "") < today]
     elif resume:
         ready = {s for s, r in coverage_by_symbol.items()
-                 if r.get("status") == "ready" and int(r.get("row_count") or 0) >= target_bars}
+                 if r.get("status") == "ready" and int(r.get("row_count") or 0) >= target_bars
+                 and expected and str(r.get("last_date") or "") >= expected}
         pending = [s for s in symbols if s not in ready]
     else:
         pending = symbols
@@ -548,11 +572,14 @@ async def sync_stock_kline_universe(symbols: list[str] | None = None,
            WHERE data_type='stock_kline' AND period='daily' AND adjust_type=?""", (adjust,))
     requested = set(symbols)
     covered = [r for r in rows if r["symbol"] in requested and r["status"] == "ready"
-               and int(r.get("row_count") or 0) >= target_bars]
+               and int(r.get("row_count") or 0) >= target_bars
+               and expected and str(r.get("last_date") or "") >= expected]
     ready_count = len(covered)
     failed = sum(1 for r in detail if r.get("status") in {"error", "empty", "degraded"})
     status = "ok" if not failed and ready_count == len(symbols) else "partial"
     return {"status": status, "total": len(symbols), "processed": len(pending),
             "ready": ready_count, "covered": len(covered), "failed": failed,
             "coverage_ratio": len(covered) / len(symbols) if symbols else 0.0,
+            "expected_trade_date": expected,
+            "warnings": [] if expected else ["交易日历未确认，不能声明数据新鲜或全市场完成"],
             "detail": detail}

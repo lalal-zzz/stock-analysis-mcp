@@ -61,4 +61,9 @@ Never mutate `PATTERN_FILTERS`, `PATTERN_STRICT_FILTERS`, or live selection beha
 
 ## Output
 
+Use daily mark-to-market equity for drawdown and Sharpe, with open-position, gap-stop, limit-exit,
+slippage and participation assumptions disclosed. `benchmark_symbol` is optional and requires local history.
+Rule proposals do not activate themselves; use the explicit approval/effective-date registry described
+in `docs/data-repair.md` when the user authorizes activation.
+
 Return the universe and period, data coverage, signal/trade counts, assumptions, event table, portfolio metrics, train/test comparison, yearly/regime stability, commonality candidates, limitations, report/CSV paths, and a clear `rules_mutated=false` statement.

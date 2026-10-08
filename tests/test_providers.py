@@ -90,7 +90,7 @@ def test_tencent_mkline_uses_datetime_key(monkeypatch):
         return payload
 
     monkeypatch.setattr(tencent, "http_get", fake_get)
-    items = tencent.fetch_stock_kline("600000", limit=10, klt="5")
+    items = tencent.fetch_stock_kline("600000", limit=10, klt="5", adjust="")
     assert calls["param"] == "sh600000,m5,,,10"
     assert len(items) == 2
     assert items[0]["datetime"] == "202608141455"
@@ -356,7 +356,7 @@ def test_stock_history_chain_falls_to_sohu(monkeypatch):
         "stock_analysis_mcp.data.providers.sohu.fetch_stock_kline_daily",
         lambda *a, **kw: list(sohu_rows),
     )
-    rows = stock_data._stock_history_sync("600000", "20260801", "20260816")
+    rows = stock_data._stock_history_sync("600000", "20260801", "20260816", adjust="")
     assert len(rows) == 1
     assert rows[0]["amount"] == pytest.approx(397586100.0)
 

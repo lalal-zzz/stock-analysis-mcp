@@ -98,11 +98,13 @@ def _stock_history_sync(
         rows = _akshare_df_rows(df, symbol, start, end)
         if rows:
             for row in rows:
-                row.setdefault("source", "akshare")
+                row.setdefault("source", df.attrs.get("provider", "akshare"))
                 row.setdefault("adjust_type", adjust)
             return rows
 
     # 3. 搜狐兜底(不复权, 仅有腾讯+东财都不可用时才会走到)
+    if adjust:
+        return []
     rows = sohu.fetch_stock_kline_daily(symbol, start_date=start, end_date=end)
     rows = _clip_kline_rows(rows, start, end)
     for row in rows:
@@ -119,6 +121,7 @@ def _akshare_history(symbol: str, prefixed: str, start: str, end: str, adjust: s
         df = ak.stock_zh_a_daily(
             symbol=prefixed, start_date=start, end_date=end, adjust=adjust
         )
+        df.attrs.update(provider="sina", volume_unit="shares")
     except Exception:
         pass
 
@@ -127,6 +130,7 @@ def _akshare_history(symbol: str, prefixed: str, start: str, end: str, adjust: s
             df = ak.stock_zh_a_hist_tx(
                 symbol=prefixed, start_date=start, end_date=end, adjust=adjust, timeout=15
             )
+            df.attrs.update(provider="tencent", volume_unit="shares")
         except Exception:
             pass
 
@@ -136,12 +140,14 @@ def _akshare_history(symbol: str, prefixed: str, start: str, end: str, adjust: s
                 symbol=symbol, period="daily", start_date=start, end_date=end,
                 adjust=adjust, timeout=15
             )
+            df.attrs.update(provider="eastmoney", volume_unit="lots")
         except Exception:
             return None
     return df
 
 
 def _akshare_df_rows(df: pd.DataFrame, symbol: str, start: str, end: str) -> list[dict]:
+    volume_unit = df.attrs.get("volume_unit")
     rename = {
         "日期": "date", "开盘": "open", "最高": "high", "最低": "low",
         "收盘": "close", "成交量": "volume", "成交额": "amount",
@@ -153,6 +159,10 @@ def _akshare_df_rows(df: pd.DataFrame, symbol: str, start: str, end: str) -> lis
     for col in ["open", "high", "low", "close", "volume", "amount"]:
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors="coerce")
+    if volume_unit == "shares" and "volume" in df:
+        df["volume"] = df["volume"] / 100
+    if "turnover" in df and "turnover_rate" not in df:
+        df["turnover_rate"] = pd.to_numeric(df["turnover"], errors="coerce") * 100
 
     df["symbol"] = symbol
     df = df.sort_values("date", ascending=False)
@@ -160,7 +170,7 @@ def _akshare_df_rows(df: pd.DataFrame, symbol: str, start: str, end: str) -> lis
     cols = ["date", "symbol", "open", "high", "low", "close", "volume", "amount",
             "amplitude", "change_pct", "change_amount", "turnover_rate"]
     result_cols = [c for c in cols if c in df.columns]
-    return df[result_cols].to_dict(orient="records")
+    return _clip_kline_rows(df[result_cols].to_dict(orient="records"), start, end)
 
 
 def _clip_kline_rows(rows: list[dict], start: str, end: str) -> list[dict]:
@@ -373,6 +383,9 @@ def _stock_kline_period_sync(symbol: str, period: str, limit: int, adjust: str) 
     # 1. 腾讯主源: 分钟走 mkline, 日/周/月走 fqkline
     rows = tencent.fetch_stock_kline(symbol, limit=limit, klt=klt, adjust=adjust)
     if rows:
+        for row in rows:
+            row.setdefault("source", "tencent")
+            row.setdefault("adjust_type", adjust)
         return rows
 
     # 2. 东财降级(熔断保护: 被封时 fetch_em_kline 直接返回 None)
@@ -400,7 +413,8 @@ def _stock_kline_period_sync(symbol: str, period: str, limit: int, adjust: str) 
     time_key = "date" if int(klt) >= 101 else "datetime"
     cols = ["open", "close", "high", "low", "volume", "amount",
             "amplitude", "change_pct", "change_amount", "turnover_rate"]
-    return parse_em_kline_rows(klines_list, {"symbol": symbol}, time_key, cols)
+    return parse_em_kline_rows(klines_list, {"symbol": symbol, "source": "eastmoney",
+                                          "adjust_type": adjust}, time_key, cols)
 
 
 async def get_stock_kline_period(
