@@ -14,7 +14,7 @@ See the [unified implementation plan](IMPLEMENTATION_PLAN.md) for the data, risi
 
 ## News and financial evidence
 
-Four new tools and Skills provide bounded news search, company/concept timelines, global macro context and multi-period financial metrics. Sources are official Fed/ECB RSS and Eastmoney search/financial data. Use `offline=true` when downloads are paused. Complete statements, real-time global quotes and an industry-chain knowledge graph remain outside this initial implementation. See [source documentation](docs/information-sources.md).
+News tools and Skills provide bounded news search, company/concept timelines, global macro context and multi-period financial metrics. Sources are official Fed/ECB RSS and Eastmoney search/financial data. Use `offline=true` when downloads are paused. A-share financial downloads support Sohu/Sina statements and Tencent summaries/composition, with source-specific limits. Real-time global quotes and an industry-chain knowledge graph remain outside this implementation. See [source documentation](docs/information-sources.md).
 
 ## Agent setup (npm)
 
@@ -142,7 +142,7 @@ pip install stock-analysis-mcp
 
 ---
 
-## MCP Tools (24 tools)
+## MCP Tools (25 tools)
 
 | Tool | Module | Purpose |
 |------|--------|---------|
@@ -170,6 +170,7 @@ pip install stock-analysis-mcp
 | `get_stock_related_news` | `data/information` | 公司与概念消息的关联依据和时间线 |
 | `get_global_market_news` | `data/information` | 官方政策发布与有限全球市场新闻 |
 | `analyze_stock_financials` | `data/information` | 多期财务指标及指定同业同报告期比较 |
+| `download_stock_financials` | `data/financials` | A股多源财务下载：搜狐/新浪报表、腾讯摘要与主营构成、东方财富指标；独立缓存与分析 |
 
 
 ### MCP call contract

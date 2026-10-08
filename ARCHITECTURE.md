@@ -8,7 +8,7 @@
 MCP client
   → index.js (Node ESM stdio shim)
   → python -m stock_analysis_mcp.server
-  → 24 registered MCP handlers
+  → 25 registered MCP handlers
   → data / tools / strategies
   → user-owned SQLite databases and report/chart files
 ```
@@ -51,7 +51,7 @@ src/stock_analysis_mcp/
 │   └── trading_backtest.py    # callable event + executable trading backtest
 ├── charting.py                # daily/weekly/monthly PNG rendering
 ├── cli.py                     # maintenance and strategy CLI
-└── server.py                  # 24-tool MCP registry
+└── server.py                  # 25-tool MCP registry
 
 skills/                        # twelve Agent Skills, discovered dynamically
 index.js                       # Node-to-Python stdio shim

@@ -33,6 +33,16 @@ def _build_parser() -> argparse.ArgumentParser:
         sp.add_argument("--dry-run", action="store_true",
                         help="只打印执行计划, 不联网不写库")
 
+    financial = sub.add_parser("financial-download", help="单股A股多源财务下载分析，导出JSON/CSV")
+    add_common(financial)
+    financial.add_argument("--symbol", required=True)
+    financial.add_argument("--provider", choices=("auto", "all", "eastmoney", "sohu", "tencent", "sina"), default="auto")
+    financial.add_argument("--report-type", choices=("all", "indicators", "balance", "income", "cashflow", "revenue_segments"), default="indicators")
+    financial.add_argument("--periods", type=int, default=8)
+    financial.add_argument("--offline", action="store_true")
+    financial.add_argument("--refresh", action="store_true")
+    financial.add_argument("--output", default=None, help="JSON路径，同时导出同名CSV")
+
     # ── rebuild ──
     r = sub.add_parser("rebuild", help="步骤化全量重建本地库 (断点续传)")
     add_common(r)
@@ -255,6 +265,20 @@ def main(argv: list[str] | None = None) -> int:
     args, remaining = _build_parser().parse_known_args(argv)
     if getattr(args, "data_dir", None):          # 数据目录覆盖 (等价 STOCK_ANALYSIS_DATA_DIR)
         os.environ["STOCK_ANALYSIS_DATA_DIR"] = args.data_dir
+    if args.command == "financial-download":
+        if remaining:
+            return 2
+        from .data.financials import download_financials, export_financials, a_symbol
+        if args.dry_run:
+            a_symbol(args.symbol)
+            print(json.dumps({"dry_run": True, "symbol": args.symbol, "provider": args.provider,
+                              "report_type": args.report_type, "periods": args.periods}, ensure_ascii=False))
+            return 0
+        result = download_financials(args.symbol, args.provider, args.report_type, args.periods, args.offline, args.refresh)
+        if args.output:
+            export_financials(result, args.output)
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 1 if result["status"] == "partial" else 0
     if args.command in {"data-audit", "data-repair"}:
         from .data.repair import audit_data, repair_data
         if remaining:

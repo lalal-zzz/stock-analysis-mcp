@@ -3,7 +3,7 @@
 ## Architecture
 
 - **Dual-runtime**: `index.js` (Node shim, ESM) spawns `python -m stock_analysis_mcp.server` via stdio and proxies I/O. The Python server is the real MCP implementation. Python interpreter resolution: `STOCK_ANALYSIS_PYTHON` env → `~/.stock-analysis/runtime.json` (uv-managed venv) → `python`.
-- **Entrypoint**: `src/stock_analysis_mcp/server.py` — uses `mcp.server.stdio` and a `@register(name, desc, schema)` decorator to wire 24 tools to MCP handlers; every result is wrapped in a `{data, meta, warnings, error}` envelope. The dispatcher validates required/unknown fields, basic JSON types, enum values, and numeric ranges, and promotes handler warnings to the outer envelope.
+- **Entrypoint**: `src/stock_analysis_mcp/server.py` — uses `mcp.server.stdio` and a `@register(name, desc, schema)` decorator to wire 25 tools to MCP handlers; every result is wrapped in a `{data, meta, warnings, error}` envelope. The dispatcher validates required/unknown fields, basic JSON types, enum values, and numeric ranges, and promotes handler warnings to the outer envelope.
 - **Node CLI**: `bin/stock-analysis.js` + `lib/` — installer commands `install` / `setup` / `doctor` / `uninstall` / `config show`. `lib/installer.js` creates a `uv` venv under `~/.stock-analysis/runtime/` and writes `config.toml` / `runtime.json` / `install-state.json`; `lib/adapters.js` auto-configures 5 agents with backups — Claude Code (`~/.claude.json`), Codex (`~/.codex/config.toml`), Cursor (`~/.cursor/mcp.json`), VS Code Copilot (user `mcp.json`, `servers` key + `type: stdio`), Qoder (`~/.qoder/mcp.json`) — and copies the skills from root `skills/` to skill-aware agents (Claude Code / Codex / Qoder); skill ids = `skills/` directory names, discovered dynamically (no mapping table); `lib/paths.js` centralizes `~/.stock-analysis` paths.
 - **Source layout**:
   - `core/config.py` — settings resolution: env vars → `~/.stock-analysis/config.toml` → defaults (`get_settings()`)
@@ -133,7 +133,7 @@ Settings resolve as **env var → `~/.stock-analysis/config.toml` → default** 
 
 The Node shim sets `PYTHONPATH` to include `src/` automatically.
 
-## MCP tools (24 registered)
+## MCP tools (25 registered)
 
 | Tool | Module | Purpose |
 |------|--------|---------|
@@ -161,6 +161,7 @@ The Node shim sets `PYTHONPATH` to include `src/` automatically.
 | `get_stock_related_news` | `data/information` | 公司与概念消息的关联依据和时间线 |
 | `get_global_market_news` | `data/information` | 官方政策发布与有限全球市场新闻 |
 | `analyze_stock_financials` | `data/information` | 多期财务指标及指定同业同报告期比较 |
+| `download_stock_financials` | `data/financials` | A股多源财务下载：搜狐/新浪报表、腾讯摘要与主营构成、东方财富指标；独立缓存与分析 |
 
 
 ## Local data workflow
@@ -180,7 +181,7 @@ Unregistered library helpers used by Skills/internal code: `get_sector_members_f
 
 ## Tool registration gotcha
 
-Tools are wired via the `@register(name, desc, schema)` decorator in `server.py` — **24 tools** are registered: the original 15 plus `sync_stock_kline_universe`, `screen_rising_candidates`, `prepare_stock_analysis`, `find_cross_timeframe_similar_patterns`, `backtest_pattern_strategy`, and four news/financial tools. The pattern and long-running research functions are dispatched with `asyncio.to_thread`. Keep `package.json`, README files, and Skill tool tables in sync with the registry.
+Tools are wired via the `@register(name, desc, schema)` decorator in `server.py` — **25 tools** are registered: the original 15 plus `sync_stock_kline_universe`, `screen_rising_candidates`, `prepare_stock_analysis`, `find_cross_timeframe_similar_patterns`, `backtest_pattern_strategy`, and five news/financial tools. The pattern and long-running research functions are dispatched with `asyncio.to_thread`. Keep `package.json`, README files, and Skill tool tables in sync with the registry.
 
 ## Skill format
 

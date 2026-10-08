@@ -138,7 +138,7 @@ pip install stock-analysis-mcp
 
 ---
 
-## MCP 工具 (24 个)
+## MCP 工具 (25 个)
 
 | 工具 | 功能 |
 |------|------|
@@ -166,6 +166,7 @@ pip install stock-analysis-mcp
 | `get_stock_related_news` | 公司与概念消息的关联依据和时间线 |
 | `get_global_market_news` | 官方政策发布与有限全球市场新闻 |
 | `analyze_stock_financials` | 多期财务指标及指定同业同报告期比较 |
+| `download_stock_financials` | A股多源财务下载：搜狐/新浪报表、腾讯摘要与主营构成、东方财富指标；独立缓存与分析 |
 
 ### MCP 调用约定
 
@@ -231,7 +232,7 @@ get_data_status
 
 ## 新闻与财务证据
 
-已接入四项工具与 Skills，来源为美联储/欧洲央行官方 RSS 及东方财富新闻/财务接口。使用 `offline=true` 可保持暂停下载；完整来源、示例和边界见[资讯来源文档](docs/information-sources.md)。当前不提供完整互联网搜索、实时全球报价、完整三张财务报表或产业链知识图谱。
+已接入四项工具与 Skills，来源为美联储/欧洲央行官方 RSS 及东方财富新闻/财务接口。使用 `offline=true` 可保持暂停下载；完整来源、示例和边界见[资讯来源文档](docs/information-sources.md)。财务下载增加搜狐/新浪三张报表与腾讯摘要/主营构成，分别披露可用期数。当前不提供完整互联网搜索、实时全球报价或产业链知识图谱。
 
 ## 统一 CLI 工具
 

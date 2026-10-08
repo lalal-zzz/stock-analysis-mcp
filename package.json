@@ -83,7 +83,8 @@
       "search_market_news",
       "get_stock_related_news",
       "get_global_market_news",
-      "analyze_stock_financials"
+      "analyze_stock_financials",
+      "download_stock_financials"
     ]
   },
   "publishConfig": {

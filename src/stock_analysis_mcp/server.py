@@ -1,6 +1,6 @@
 """
 股票分析 MCP Server — 精简入口
-暴露24个工具，包含行情、结构研究、新闻和财务证据。
+暴露25个工具，包含行情、结构研究、新闻和多源A股财务下载分析。
 """
 
 import asyncio
@@ -498,11 +498,27 @@ async def _global_news(query="全球市场", days=7, limit=30, offline=False):
     "type": "object", "properties": {
         "symbol": {"type": "string"}, "periods": {"type": "integer", "minimum": 1, "maximum": 20},
         "peers": {"type": "array", "items": {"type": "string"}}, "offline": {"type": "boolean"},
+        "provider": {"type": "string", "enum": ["auto", "eastmoney", "sohu", "tencent"]},
+        "compare_sources": {"type": "boolean", "description": "并列下载已支持指标的来源，披露同报告期差异"},
     }, "required": ["symbol"],
 })
-async def _financials(symbol, periods=8, peers=None, offline=False):
+async def _financials(symbol, periods=8, peers=None, offline=False, provider="auto", compare_sources=False):
     from .data.information import financial_analysis
-    return await asyncio.to_thread(financial_analysis, symbol, periods, peers, offline)
+    return await asyncio.to_thread(financial_analysis, symbol, periods, peers, offline, provider, compare_sources)
+
+
+@register("download_stock_financials", "沪深北A股多源财务下载与基础分析：搜狐指标和三张报表、腾讯摘要和主营构成、新浪报表、东方财富指标；分别缓存不混用口径", {
+    "type": "object", "properties": {
+        "symbol": {"type": "string"},
+        "provider": {"type": "string", "enum": ["auto", "all", "eastmoney", "sohu", "tencent", "sina"]},
+        "report_type": {"type": "string", "enum": ["all", "indicators", "balance", "income", "cashflow", "revenue_segments"]},
+        "periods": {"type": "integer", "minimum": 1, "maximum": 20},
+        "offline": {"type": "boolean"}, "refresh": {"type": "boolean", "description": "联网时跳过新鲜缓存；离线时忽略"},
+    }, "required": ["symbol"],
+})
+async def _download_financials(symbol, provider="auto", report_type="indicators", periods=8, offline=False, refresh=False):
+    from .data.financials import download_financials
+    return await asyncio.to_thread(download_financials, symbol, provider, report_type, periods, offline, refresh)
 
 
 @_sdk_decorator("list_tools")

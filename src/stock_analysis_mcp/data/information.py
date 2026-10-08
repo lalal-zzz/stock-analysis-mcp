@@ -18,7 +18,7 @@ from urllib.parse import urlsplit, urlunsplit, quote
 from zoneinfo import ZoneInfo
 
 from ..core.config import get_settings
-from .network import (http_get, http_get_text, normalize_symbol, to_prefixed_symbol,
+from .network import (http_get, http_get_text, normalize_symbol,
                       provider_available, mark_provider_fail, mark_provider_ok)
 
 FEEDS = {
@@ -63,7 +63,7 @@ def timestamp(value, *, chinese=False):
     return dt.astimezone(timezone.utc).isoformat()
 
 
-def _request(url, *, text=False, params=None):
+def _request(url, *, text=False, params=None, **options):
     host = urlsplit(url).hostname
     # Serialize these low-volume sources; never amplify a failing endpoint.
     with _lock:
@@ -76,7 +76,7 @@ def _request(url, *, text=False, params=None):
         try:
             method = http_get_text if text else http_get
             result = method(url, params=params, retries=1, timeout=10,
-                            use_cookies=False, verify=True)
+                            use_cookies=False, verify=True, **options)
             if result is None:
                 mark_provider_fail(health_key)
                 raise RuntimeError("source unavailable")
@@ -98,7 +98,7 @@ def _cached(key, loader, *, offline=False, ttl=900):
         saved = None
     if saved and (offline or 0 <= age <= ttl):
         return saved["data"], {"source": key, "status": "cached", "fetched_at": saved["fetched_at"],
-                               "stale": age > ttl, "offline": offline}
+                               "stale": age > ttl, "offline": offline, "cache_path": str(path)}
     if offline:
         return [], {"source": key, "status": "unavailable", "error": "offline cache miss"}
     try:
@@ -111,11 +111,11 @@ def _cached(key, loader, *, offline=False, ttl=900):
             temporary.replace(path)
         finally:
             temporary.unlink(missing_ok=True)
-        return data, {"source": key, "status": "ok", "fetched_at": entry["fetched_at"], "stale": False}
+        return data, {"source": key, "status": "ok", "fetched_at": entry["fetched_at"], "stale": False, "cache_path": str(path)}
     except Exception as exc:
         if saved and 0 <= age <= 7 * 86400:
             return saved["data"], {"source": key, "status": "stale", "fetched_at": saved["fetched_at"],
-                                   "stale": True, "error": str(exc)}
+                                   "stale": True, "error": str(exc), "cache_path": str(path)}
         return [], {"source": key, "status": "unavailable", "error": str(exc)}
 
 
@@ -299,7 +299,9 @@ FINANCIAL_FIELDS = {"EPSJB": "eps", "BPS": "book_value_per_share", "TOTALOPERATE
 
 
 def fetch_financials(symbol, periods):
-    market = to_prefixed_symbol(symbol)[:2].upper()
+    from .financials import a_symbol
+    symbol, market = a_symbol(symbol)
+    market = market.upper()
     payload = _request(FINANCE_URL, params={"type": "RPT_F10_FINANCE_MAINFINADATA", "sty": "APP_F10_MAINFINADATA",
         "filter": f'(SECUCODE="{symbol}.{market}")', "p": "1", "ps": str(periods),
         "sr": "-1", "st": "REPORT_DATE", "source": "HSF10", "client": "PC"})
@@ -321,22 +323,42 @@ def fetch_financials(symbol, periods):
     return sorted(rows, key=lambda r: r["report_date"], reverse=True)[:periods]
 
 
-def financial_analysis(symbol, periods=8, peers=None, offline=False):
-    symbols = list(dict.fromkeys([normalize_symbol(symbol)] + [normalize_symbol(s) for s in (peers or [])]))
+def financial_analysis(symbol, periods=8, peers=None, offline=False, provider="auto", compare_sources=False):
+    from .financials import a_symbol, download_financials
+    symbols = list(dict.fromkeys([a_symbol(symbol)[0]] + [a_symbol(s)[0] for s in (peers or [])]))
     if not 1 <= periods <= 20 or len(symbols) > 6 or any(not re.fullmatch(r"\d{6}", s) for s in symbols):
         raise ValueError("periods 1..20 and at most five A-share peers")
     companies, sources = [], []
     for code in symbols:
-        rows, state = _cached(f"financial:{code}:{periods}", lambda s=code: fetch_financials(s, periods), offline=offline, ttl=86400)
-        sources.append(state)
-        companies.append({"symbol": code, "reports": rows})
+        legacy_rows = []
+        if provider == "auto" and not compare_sources:
+            # Preserve old Eastmoney cache keys; fail over to an independent A-share source.
+            rows, state = _cached(f"financial:{code}:{periods}", lambda s=code: fetch_financials(s, periods), offline=offline, ttl=86400)
+            legacy_rows = rows
+            sources.append(state)
+            if rows and not state.get("stale"):
+                companies.append({"symbol": code, "reports": rows, "provider": "eastmoney"})
+                continue
+        downloaded = download_financials(code, provider="all" if compare_sources else ("sohu" if provider == "auto" else provider),
+                                         periods=periods, offline=offline)
+        source_sets = downloaded["datasets"]
+        if not any(d["reports"] and not d["source_status"].get("stale") for d in source_sets) and provider == "auto" and not compare_sources:
+            downloaded = download_financials(code, provider="tencent", periods=periods, offline=offline)
+            source_sets += downloaded["datasets"]
+        sources.extend(d["source_status"] for d in source_sets)
+        candidates = [d for d in source_sets if d["reports"]]
+        selected = next((d for d in candidates if not d["source_status"].get("stale")), candidates[0] if candidates else None)
+        companies.append({"symbol": code, "reports": selected["reports"] if selected else legacy_rows,
+                          "provider": selected["provider"] if selected else ("eastmoney" if legacy_rows else None),
+                          "source_datasets": source_sets, "cross_source_analysis": downloaded["analysis"]})
     primary = companies[0]["reports"]
     date = primary[0]["report_date"] if primary else None
     comparison = [{"symbol": c["symbol"], "report": next((r for r in c["reports"] if r["report_date"] == date), None)} for c in companies]
     warnings = ["财报金额为人民币元，比例百分数字段带_pct；累计报告期不能当作单季度或TTM。缺失值保留null。",
                 "同业由用户指定，仅比较相同报告期；行业可比性需核验。数据是当前可得版本，不能直接用于历史时点回测。",
-                "来源为东方财富财务指标，不替代交易所原始公告；未提供实时估值或完整三张财务报表。"]
-    degraded = not primary or any(s["status"] in {"stale", "unavailable"} or s.get("stale") for s in sources)
+                "来源为各提供商A股财务指标，不替代交易所原始公告；三张报表请用download_stock_financials下载，腾讯摘要不可冒充多期报表。"]
+    degraded = not primary or any(len(c["reports"]) < periods for c in companies) or any(
+        s["status"] in {"stale", "unavailable"} or s.get("stale") for s in sources)
     if degraded:
         warnings.append("财务来源缺失或过期，部分分析不可用。")
     # Use existing dated valuation evidence without triggering quote/history downloads.

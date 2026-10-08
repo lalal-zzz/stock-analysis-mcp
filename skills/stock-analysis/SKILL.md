@@ -30,9 +30,9 @@ Call `get_data_status` before market-wide work or when freshness matters.
 | News and official policy releases | `stock-analysis-news` | `search_market_news` |
 | Company/concept news timelines | `stock-analysis-related-news` | `get_stock_related_news` |
 | Global macro and market news context | `stock-analysis-global-markets` | `get_global_market_news` |
-| Financial metrics and same-period peers | `stock-analysis-financials` | `analyze_stock_financials` |
+| A-share multi-source financial download, metrics and peers | `stock-analysis-financials` | `download_stock_financials`, `analyze_stock_financials` |
 
-News/financial requests do not require stock-history initialization. Respect offline=true when downloads are paused. These tools disclose bounded source/cache coverage; they do not provide a complete web search, real-time global quotes or complete financial statements.
+News/financial requests do not require stock-history initialization. Respect offline=true when downloads are paused. Financial providers have different statement/indicator/history capabilities; inspect the returned limits. These tools do not provide a complete web search or real-time global quotes.
 
 ## Shared analysis contract
 
