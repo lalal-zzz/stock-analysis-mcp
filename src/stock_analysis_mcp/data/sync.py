@@ -120,6 +120,37 @@ async def _fetch_members(item):
         return code, []
 
 
+def _save_sector_batch(tasks, results, today, *, members=False):
+    """Retain successful items; advance batch metadata only after full success."""
+    total, successful, failed = 0, 0, []
+    for index, task in enumerate(tasks):
+        code = task[0]
+        result = results[index] if index < len(results) else None
+        try:
+            if isinstance(result, Exception):
+                raise result
+            rows = result[1] if members and result else result
+            if not rows:
+                raise ValueError("empty provider result")
+            if members:
+                rows = [{**r, "sector_code": code, "updated_date": today} for r in rows]
+                save_sector_member(rows)
+            else:
+                save_sector_kline(rows)
+            total += len(rows)
+            successful += 1
+        except Exception:
+            failed.append(code)
+    prefix = "member" if members else "kline"
+    if successful:
+        set_meta_sector(f"{prefix}_partial_updated", today)
+    if tasks and not failed:
+        set_meta_sector(f"{prefix}_updated", today)
+        if members:
+            set_meta_sector("member_sector_count", str(successful))
+    return total, failed
+
+
 # ═══════════════════ 全量初始化 ═══════════════════
 
 async def init_all_data(include_sector_members: bool = True, quick: bool = False,
@@ -219,40 +250,29 @@ async def init_all_data(include_sector_members: bool = True, quick: bool = False
     tasks = [(code, 300, name_by_code.get(code)) for code in codes]
     t0 = time.perf_counter()
     all_klines = await _concurrent_map(tasks, _fetch_kline, desc="板块K线")
-    kline_total = 0
-    for kl in all_klines:
-        if kl:
-            save_sector_kline(kl)
-            kline_total += len(kl)
-    set_meta_sector("kline_updated", today)
+    kline_total, kline_failed = _save_sector_batch(tasks, all_klines, today)
     log[-1] += f" {kline_total} 条(耗时 {time.perf_counter() - t0:.0f}s)"
 
     # 6-7. 板块成分股(可选, 并发下载)
     if include_sector_members:
         _step(f"并发下载 {len(codes)} 个板块成分股...")
         t0 = time.perf_counter()
+        member_tasks = [(code, name_by_code.get(code)) for code in codes]
         member_results = await _concurrent_map(
-            [(code, name_by_code.get(code)) for code in codes],
+            member_tasks,
             _fetch_members, desc="成分股", concurrency=1,
         )
-        member_total = 0
-        for code, members in member_results:
-            if members:
-                for m in members:
-                    m["updated_date"] = today
-                    if "sector_code" not in m:
-                        m["sector_code"] = code
-                save_sector_member(members)
-                member_total += len(members)
-        set_meta_sector("member_updated", today)
-        set_meta_sector("member_sector_count", str(len(codes)))
+        member_total, member_failed = _save_sector_batch(member_tasks, member_results, today, members=True)
         log[-1] += f" {member_total} 条(耗时 {time.perf_counter() - t0:.0f}s)"
     else:
         _step("跳过成分股下载")
 
-    partial = (not all_sectors or not kline_total or
+    partial = (not concept or not industry or not rank_rows or not kline_total or bool(kline_failed) or
+               (include_sector_members and bool(member_failed)) or
                (mode in {"research", "full"} and synced.get("status") != "ok"))
-    return {"status": "partial" if partial else "ok", "mode": mode, "log": log, "paths": get_db_paths()}
+    return {"status": "partial" if partial else "ok", "mode": mode, "log": log,
+            "failed_kline_sectors": kline_failed,
+            "failed_member_sectors": member_failed if include_sector_members else [], "paths": get_db_paths()}
 
 
 # ═══════════════════ 增量每日更新 ═══════════════════
@@ -311,7 +331,7 @@ async def update_daily_sectors(include_members: bool = True, top_n: int = 50) ->
             for s in secs:
                 s["updated_date"] = today
             all_sectors.extend(secs)
-            log.append(f"板块列表({st}): {len(secs)} 个")
+            log.append(f"板块列表({st}): {len(secs)} 个" if secs else f"板块列表({st}): FAIL 无数据")
         except Exception as e:
             log.append(f"板块列表({st}): FAIL {e}")
     save_sector_basic(all_sectors)
@@ -334,13 +354,8 @@ async def update_daily_sectors(include_members: bool = True, top_n: int = 50) ->
             for s in active if s.get("sector_code")
         ]
         all_klines = await _concurrent_map(tasks, _fetch_kline, desc="板块K线更新")
-        kline_total = 0
-        for kl in all_klines:
-            if kl:
-                save_sector_kline(kl)
-                kline_total += len(kl)
-        set_meta_sector("kline_updated", today)
-        log[-1] += f" OK {kline_total} 条"
+        kline_total, kline_failed = _save_sector_batch(tasks, all_klines, today)
+        log[-1] += f" OK {kline_total} 条" if tasks and not kline_failed else f": FAIL 成功{kline_total}条，缺失{len(kline_failed)}个板块"
     except Exception as e:
         log.append(f"板块K线: FAIL {e}")
 
@@ -348,21 +363,13 @@ async def update_daily_sectors(include_members: bool = True, top_n: int = 50) ->
     if include_members and active_codes:
         try:
             log.append(f"成分股(Top{len(active_codes)}): 并发...")
+            member_tasks = [(s["sector_code"], s.get("sector_name")) for s in active]
             member_results = await _concurrent_map(
-                [(s["sector_code"], s.get("sector_name")) for s in active],
+                member_tasks,
                 _fetch_members, desc="成分股更新", concurrency=1,
             )
-            member_total = 0
-            for code, members in member_results:
-                if members:
-                    for m in members:
-                        m["updated_date"] = today
-                        if "sector_code" not in m:
-                            m["sector_code"] = code
-                    save_sector_member(members)
-                    member_total += len(members)
-            set_meta_sector("member_updated", today)
-            log[-1] += f" OK {member_total} 条"
+            member_total, member_failed = _save_sector_batch(member_tasks, member_results, today, members=True)
+            log[-1] += f" OK {member_total} 条" if not member_failed else f": FAIL 成功{member_total}条，缺失{len(member_failed)}个板块"
         except Exception as e:
             log.append(f"成分股: FAIL {e}")
 
@@ -476,12 +483,15 @@ async def _download_one_kline(symbol: str, days: int = 560, adjust: str = "qfq",
             total_rows = int(stats.get("row_count") or len(local_klines))
             sources = sorted({r.get("source", "multi-provider") for r in klines})
             source = sources[0] if len(sources) == 1 else "mixed"
+            indicator_error = None
             try:
                 df = pd.DataFrame(local_klines).sort_values("date", ascending=True)
                 ind_rows = indicator_rows_from_df(df, index_cols=("symbol", "date", "adjust_type"))
-                if ind_rows:
-                    save_stock_indicators(ind_rows)
+                if not ind_rows or len(ind_rows) != len(local_klines):
+                    raise ValueError("indicator output does not cover local history")
+                save_stock_indicators(ind_rows)
             except Exception as ind_err:
+                indicator_error = str(ind_err)
                 # K线已保存; 指标失败不能无感知(下游形态引擎要求指标齐全)
                 print(f"[warn] {symbol} 指标计算失败: {ind_err}", file=sys.stderr)
                 save_data_coverage("stock_indicators", symbol, adjust_type=coverage_adjust,
@@ -496,11 +506,12 @@ async def _download_one_kline(symbol: str, days: int = 560, adjust: str = "qfq",
                                first_date=first_date, last_date=last_date,
                                row_count=total_rows, source=source,
                                status=price_status)
-            result_status = "ok" if coverage_adjust == adjust else "degraded"
+            result_status = "partial" if indicator_error else ("ok" if coverage_adjust == adjust else "degraded")
             return {"status": result_status, "symbol": symbol, "count": len(klines),
                     "total_count": total_rows,
                     "first_date": first_date, "last_date": last_date,
-                    "adjust_type": coverage_adjust}
+                    "adjust_type": coverage_adjust,
+                    "warnings": [f"指标计算失败: {indicator_error}"] if indicator_error else []}
         if start_date is None:
             save_data_coverage("stock_kline", symbol, adjust_type=adjust, status="empty")
         return {"status": "empty", "symbol": symbol}
@@ -521,7 +532,9 @@ async def download_stocks_kline_batch(symbols: list[str], days: int = 560, adjus
 
     results = await _concurrent_map(symbols, _task, desc="K线批量")
     total = sum(r.get("count", 0) for r in results if isinstance(r, dict))
-    return {"status": "ok", "symbols": len(symbols), "total_klines": total, "detail": results}
+    failed = sum(1 for r in results if not isinstance(r, dict) or r.get("status") != "ok")
+    return {"status": "partial" if failed else "ok", "symbols": len(symbols),
+            "failed": failed, "total_klines": total, "detail": results}
 
 
 async def sync_stock_kline_universe(symbols: list[str] | None = None,
@@ -575,7 +588,7 @@ async def sync_stock_kline_universe(symbols: list[str] | None = None,
                and int(r.get("row_count") or 0) >= target_bars
                and expected and str(r.get("last_date") or "") >= expected]
     ready_count = len(covered)
-    failed = sum(1 for r in detail if r.get("status") in {"error", "empty", "degraded"})
+    failed = sum(1 for r in detail if r.get("status") in {"error", "empty", "degraded", "partial"})
     status = "ok" if not failed and ready_count == len(symbols) else "partial"
     return {"status": status, "total": len(symbols), "processed": len(pending),
             "ready": ready_count, "covered": len(covered), "failed": failed,

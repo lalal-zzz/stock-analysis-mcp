@@ -118,6 +118,9 @@ def replace_stock_history(symbol: str, adjust: str, rows: list[dict], *, reason:
             conn.execute(f"DELETE FROM {table} WHERE symbol=? AND adjust_type=?", (symbol, adjust))
         conn.execute("DELETE FROM pattern_signals WHERE universe='stocks' AND symbol=?", (symbol,))
         conn.execute("DELETE FROM structure_snapshots WHERE universe='stocks' AND symbol=?", (symbol,))
+        conn.execute("UPDATE data_coverage SET status='partial',last_error='history replaced; requires revalidation' WHERE symbol=? AND adjust_type=?", (symbol, adjust))
+        if conn.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='history_repair_state'").fetchone():
+            conn.execute("DELETE FROM history_repair_state WHERE symbol=? AND adjust_type=?", (symbol, adjust))
         _insert_klines(conn, payload)
     return batch_id
 

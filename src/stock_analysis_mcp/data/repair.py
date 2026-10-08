@@ -19,13 +19,24 @@ def audit_data(symbols=None) -> dict:
         return {"stock_db": str(path), "symbols": 0, "issues": ["database_missing"]}
     with sqlite3.connect(path.resolve().as_uri() + "?mode=ro", uri=True) as conn:
         conn.row_factory = sqlite3.Row
+        tables = {r[0] for r in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+        if "stock_basic" not in tables:
+            return {"stock_db": str(path), "symbols": 0, "issues": ["stock_basic_missing"],
+                    "full_market_complete": False}
         universe = [r[0] for r in conn.execute("SELECT symbol FROM stock_basic ORDER BY symbol")]
         selected = set(symbols or universe)
-        stats = [dict(r) for r in conn.execute("""SELECT symbol,adjust_type,COUNT(*) AS bars,
+        histories = []
+        for table in ("stock_kline", "stock_kline_variants"):
+            if table not in tables:
+                continue
+            columns = {r[1] for r in conn.execute(f"PRAGMA table_info({table})")}
+            adjust = "adjust_type" if "adjust_type" in columns else "'qfq' AS adjust_type"
+            source = "source" if "source" in columns else "'legacy' AS source"
+            histories.append(f"SELECT symbol,{adjust},date,{source} FROM {table}")
+        history_sql = " UNION ALL ".join(histories)
+        stats = [dict(r) for r in conn.execute(f"""SELECT symbol,adjust_type,COUNT(*) AS bars,
             MIN(date) AS first_date,MAX(date) AS last_date,COUNT(DISTINCT source) AS sources
-            FROM (SELECT symbol,adjust_type,date,source FROM stock_kline
-                  UNION ALL SELECT symbol,adjust_type,date,source FROM stock_kline_variants)
-            GROUP BY symbol,adjust_type""") if r["symbol"] in selected]
+            FROM ({history_sql}) GROUP BY symbol,adjust_type""") if r["symbol"] in selected] if histories else []
     expected = latest_completed_trade_day()
     indexed = {(r["symbol"], r["adjust_type"]): r for r in stats}
     jobs = []

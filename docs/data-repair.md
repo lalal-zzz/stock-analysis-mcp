@@ -31,6 +31,13 @@ JSONL日志保存每项结果，JSON检查点保存最近100项；完成后输�
 
 板块采用东财单一价格口径。失败进入 `sector_retry_queue`，冷却后重新运行包含板块的修复命令。
 状态接口披露板块K线覆盖和指标版本。
+板块K线或成分股批次存在空结果、失败时保留已成功的数据，并返回部分完成；
+`kline_updated` / `member_updated` 仅在所选批次全部成功时更新。
+局部成功时间另存为 `kline_partial_updated` / `member_partial_updated`，不代表全市场新鲜度。
+板块重试报告披露冷却中数量；无板块或任务全部等待重试时不会返回成功。
+
+只读审计可检查尚未迁移的旧数据库，不会新增表或改写文件。
+整段股票历史替换会同时撤销旧覆盖认证和修复状态；指标为空或计算失败时下载结果为部分完成。
 
 预警规则是包含 `zone_id,symbol,timeframe,lower,upper` 的JSON数组，价格使用不复权口径。
 `timeframe` 支持分钟周期和101/102/103，或daily/weekly/monthly。

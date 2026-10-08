@@ -29,6 +29,94 @@ def bar(day="2026-09-01", close=10, source="tencent", adjust="qfq"):
             "source":source, "adjust_type":adjust}
 
 
+@pytest.mark.parametrize("members", [False, True])
+def test_sector_partial_batch_retains_success_without_completion(monkeypatch, members):
+    from stock_analysis_mcp.data import sync
+    saved, metadata = [], {}
+    monkeypatch.setattr(sync, "save_sector_member" if members else "save_sector_kline", saved.extend)
+    monkeypatch.setattr(sync, "set_meta_sector", metadata.__setitem__)
+    rows = [{"sector_code": "BK0001", "trade_date": "2026-09-30"}]
+    results = [("BK0001", rows), ("BK0002", [])] if members else [rows, []]
+    count, failed = sync._save_sector_batch([("BK0001",), ("BK0002",)], results, "2026-10-08", members=members)
+    prefix = "member" if members else "kline"
+    assert count == 1 and failed == ["BK0002"] and len(saved) == 1
+    assert f"{prefix}_updated" not in metadata
+    assert metadata[f"{prefix}_partial_updated"] == "2026-10-08"
+    results[1] = ("BK0002", rows) if members else rows
+    sync._save_sector_batch([("BK0001",), ("BK0002",)], results, "2026-10-08", members=members)
+    assert metadata[f"{prefix}_updated"] == "2026-10-08"
+
+
+async def test_empty_sector_update_does_not_claim_success(monkeypatch):
+    from stock_analysis_mcp.data import sync
+    from stock_analysis_mcp.tools import sector_data
+    async def empty(*args, **kwargs):
+        return []
+    monkeypatch.setattr(sector_data, "get_sector_list", empty)
+    monkeypatch.setattr(sync, "save_sector_basic", lambda rows: None)
+    monkeypatch.setattr(sync, "set_meta_sector", lambda *args: pytest.fail("false completion timestamp"))
+    assert (await sync.update_daily_sectors())["status"] == "partial"
+
+
+def test_sector_cooldown_is_reported_as_partial(databases, monkeypatch):
+    from stock_analysis_mcp.data import sector_repair
+    from stock_analysis_mcp.data.build import helpers
+    from stock_analysis_mcp.data.storage.schema import _write_conn
+    storage.save_sector_basic([{"sector_code": "BK0001", "sector_name": "test"}])
+    with _write_conn(storage.get_sector_db()) as conn:
+        conn.execute("CREATE TABLE sector_retry_queue (sector_code TEXT PRIMARY KEY,status TEXT,last_error TEXT,next_retry_at TEXT,updated_at TEXT)")
+        conn.execute("INSERT INTO sector_retry_queue VALUES('BK0001','failed','offline','9999-01-01','2026-10-08')")
+    monkeypatch.setattr(sector_repair, "latest_completed_trade_day", lambda: "2026-09-30")
+    monkeypatch.setattr(helpers, "_sector_kline_full", lambda *a: pytest.fail("cooldown must not fetch"))
+    result = sector_repair.repair_sectors()
+    assert result["status"] == "partial" and result["retry_deferred"] == 1
+    assert result["total"] == 1 and result["results"] == []
+
+
+def test_read_only_audit_handles_unmigrated_database(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+    from stock_analysis_mcp.data import repair
+    path = tmp_path / "stock_data.db"
+    with sqlite3.connect(path) as conn:
+        conn.executescript("CREATE TABLE stock_basic(symbol TEXT); INSERT INTO stock_basic VALUES('000001');"
+                           "CREATE TABLE stock_kline(symbol TEXT,date TEXT);"
+                           "INSERT INTO stock_kline VALUES('000001','2026-09-30');")
+    before = path.read_bytes()
+    monkeypatch.setattr(repair, "get_settings", lambda: SimpleNamespace(stock_dir=tmp_path))
+    monkeypatch.setattr(repair, "latest_completed_trade_day", lambda: "2026-09-30")
+    report = repair.audit_data()
+    assert report["adjustments"]["qfq"] == 1
+    assert path.read_bytes() == before
+
+
+def test_replacement_invalidates_repair_certification(databases):
+    from stock_analysis_mcp.data.repair import _state_table
+    from stock_analysis_mcp.data.storage.schema import _write_conn
+    from stock_analysis_mcp.data.storage.writer import replace_stock_history
+    storage.save_stock_kline([bar()])
+    storage.save_data_coverage("stock_kline", "000001", adjust_type="qfq", status="ready")
+    with _write_conn(storage.get_stock_db()) as conn:
+        _state_table(conn)
+        conn.execute("INSERT INTO history_repair_state(symbol,adjust_type,status) VALUES('000001','qfq','repaired')")
+    replace_stock_history("000001", "qfq", [bar(close=20)], reason="test")
+    assert storage.query_stock_db("SELECT * FROM history_repair_state") == []
+    assert storage.query_stock_db("SELECT status FROM data_coverage")[0]["status"] == "partial"
+
+
+async def test_indicator_failure_is_not_a_successful_download(databases, monkeypatch):
+    from stock_analysis_mcp.data import sync, quality
+    from stock_analysis_mcp.tools import stock_data
+    async def history(*args, **kwargs):
+        return [bar()]
+    monkeypatch.setattr(stock_data, "get_stock_history", history)
+    monkeypatch.setattr(quality, "latest_completed_trade_day", lambda **k: "2026-09-01")
+    monkeypatch.setattr(sync, "indicator_rows_from_df", lambda *a, **k: [])
+    result = await sync.download_stocks_kline_batch(["000001"])
+    assert result["status"] == "partial" and result["failed"] == 1
+    assert result["detail"][0]["warnings"]
+    assert storage.query_stock_db("SELECT status FROM data_coverage WHERE data_type='stock_indicators'")[0]["status"] == "failed"
+
+
 def test_adjusted_provider_does_not_fall_back_to_raw(monkeypatch):
     from stock_analysis_mcp.data.providers import tencent
     monkeypatch.setattr(tencent, "http_get", lambda *a, **k: {
