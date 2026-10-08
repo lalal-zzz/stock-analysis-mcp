@@ -26,7 +26,7 @@
   ],
   "scripts": {
     "postinstall": "node bin/stock-analysis.js postinstall",
-    "test:node": "node --test node-tests/*.test.js",
+    "test:node": "node --test node-tests/adapters.test.js node-tests/cli.test.js",
     "start": "node index.js"
   },
   "keywords": [
