@@ -82,9 +82,12 @@ def test_combined_preserves_spot_cols(tmp_stock_db):
 
 # ── server ──
 
-def test_server_registers_19_tools():
+def test_server_registry_matches_manifest():
     from stock_analysis_mcp import server
-    assert len(server.TOOL_HANDLERS) == 20
+    import json
+    from pathlib import Path
+    manifest = json.loads((Path(__file__).parents[1] / "package.json").read_text(encoding="utf-8"))
+    assert set(server.TOOL_HANDLERS) == set(manifest["mcp"]["tools"])
     assert "render_stock_charts" in server.TOOL_HANDLERS
 
 

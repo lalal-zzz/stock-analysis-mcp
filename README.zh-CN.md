@@ -138,7 +138,7 @@ pip install stock-analysis-mcp
 
 ---
 
-## MCP 工具 (20 个)
+## MCP 工具 (24 个)
 
 | 工具 | 功能 |
 |------|------|
@@ -162,12 +162,17 @@ pip install stock-analysis-mcp
 | `prepare_stock_analysis` | 为逐股AI研判准备月周日数值和图表 |
 | `find_cross_timeframe_similar_patterns` | 目标取最近N根K线，与全市场全部历史N根窗口比较；返回相似片段及后续上涨/震荡/下跌概率 |
 | `backtest_pattern_strategy` | 事件研究与5～20日交易回测 |
+| `search_market_news` | 带来源时间、链接与缓存状态的有限新闻检索 |
+| `get_stock_related_news` | 公司与概念消息的关联依据和时间线 |
+| `get_global_market_news` | 官方政策发布与有限全球市场新闻 |
+| `analyze_stock_financials` | 多期财务指标及指定同业同报告期比较 |
 
 ### MCP 调用约定
 
 每个工具都公开 JSON Schema；服务端会校验必填字段、未知字段、基础类型、枚举值和数值范围。调用结果统一为 `{data, meta, warnings, error}`：先检查 `error`，再保留 `warnings`，并以 `meta` 和数据自身的截止日期判断新鲜度。工具不会承诺持续监控、推送通知或确定性买卖结论。
 
-附带 **8 个 Agent Skill**（由 `stock-analysis install` 自动安装），教授 AI 如何组合使用这些工具完成复杂选股和报告工作流：
+
+附带 **12 个 Agent Skill**（由 `stock-analysis install` 自动安装），教授 AI 如何组合使用这些工具完成复杂选股和报告工作流：
 
 | Skill | 用途 |
 |-------|------|
@@ -224,14 +229,9 @@ get_data_status
 
 只有合格股票K线覆盖率达到95%时才能称为全市场结果。底层5类检测器是 `trend_pullback`、`w_bottom`、`m_neckline`、`box_breakout` 和 `ma_rebound`；高层报告将后两类名称统一为 `neckline_reclaim` 与 `major_ma_rebound`。第六类 `fibonacci_confluence` 是增强证据，不是独立反转形态。
 
-## TODO / 路线图
+## 新闻与财务证据
 
-- 财务分析：财报、盈利质量、成长性、偿债能力、现金流、估值，以及多期和同行比较。
-- 最新全球消息搜索：聚合带发布时间和来源链接的可核验全球资讯，并归并重复消息。
-- 股票与概念关联消息：将公司、产业链、题材概念与新闻事件关联，展示依据和时间线。
-- 全球市场消息：覆盖主要股指、利率、汇率、大宗商品和海外市场异动，为 A 股研究补充跨市场背景。
-
-以上能力尚未包含在当前版本中，将按“来源可追溯、时间可核验、结论有边界”的原则逐步接入。
+已接入四项工具与 Skills，来源为美联储/欧洲央行官方 RSS 及东方财富新闻/财务接口。使用 `offline=true` 可保持暂停下载；完整来源、示例和边界见[资讯来源文档](docs/information-sources.md)。当前不提供完整互联网搜索、实时全球报价、完整三张财务报表或产业链知识图谱。
 
 ## 统一 CLI 工具
 
@@ -437,3 +437,12 @@ pytest -m integration     # 可选：真实网络 + 写本地库的集成测试
 ## 许可证
 
 MIT License
+
+### News and financial Skills
+
+| Skill | Purpose |
+|---|---|
+| `stock-analysis-news` | News evidence and citations |
+| `stock-analysis-related-news` | Company/concept event timelines |
+| `stock-analysis-global-markets` | Macro policy and global market context |
+| `stock-analysis-financials` | Multi-period financial metrics and peers |

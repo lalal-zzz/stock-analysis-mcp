@@ -14,6 +14,8 @@ Prefer `prepare_stock_analysis(symbol, days=500, include_chart=true)` because it
 Supplement only when needed:
 
 - `generate_stock_report(symbol)`: legacy daily technical/risk summary.
+- `analyze_stock_financials(symbol, periods=8)`: optional dated multi-period financial evidence; retain cumulative-period and missing-data caveats.
+- `get_stock_related_news(symbol, days=30)`: optional cited company/sector news timeline; distinguish retrieval association from verified company exposure.
 - `get_key_levels(universe="stocks", symbol=...)`: legacy flat levels plus the unified `market_structure` snapshot.
 - `get_pattern_history(universe="stocks", symbol=...)`: historical detector context.
 - `get_stock_kline_period`: live weekly/monthly or intraday timing data when the request requires it.

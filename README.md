@@ -12,14 +12,9 @@ It is designed for a complete research loop: **check data quality → build a ca
 
 See the [unified implementation plan](IMPLEMENTATION_PLAN.md) for the data, rising-pattern, per-stock AI review, and backtest contracts.
 
-## Roadmap / TODO
+## News and financial evidence
 
-- Financial analysis: statements, earnings quality, growth, solvency, cash flow, valuation, and peer comparison.
-- Latest global news search with timestamps, source links, and duplicate-event consolidation.
-- Stock and concept-related news mapped to companies, industries, themes, and event timelines.
-- Global market news covering major indices, rates, currencies, commodities, and overseas market moves.
-
-These capabilities are planned and are not part of the current release.
+Four new tools and Skills provide bounded news search, company/concept timelines, global macro context and multi-period financial metrics. Sources are official Fed/ECB RSS and Eastmoney search/financial data. Use `offline=true` when downloads are paused. Complete statements, real-time global quotes and an industry-chain knowledge graph remain outside this initial implementation. See [source documentation](docs/information-sources.md).
 
 ## Agent setup (npm)
 
@@ -147,7 +142,7 @@ pip install stock-analysis-mcp
 
 ---
 
-## MCP Tools (20 tools)
+## MCP Tools (24 tools)
 
 | Tool | Module | Purpose |
 |------|--------|---------|
@@ -171,12 +166,17 @@ pip install stock-analysis-mcp
 | `prepare_stock_analysis` | `tools/research` | Build the monthly/weekly/daily numeric and chart packet for per-stock AI review |
 | `find_cross_timeframe_similar_patterns` | `strategies/similarity` | Compare the latest N bars with all historical N-bar windows and estimate conditional outcome probabilities |
 | `backtest_pattern_strategy` | `strategies/trading_backtest` | Event study plus executable 5–20 day trading simulation |
+| `search_market_news` | `data/information` | 带来源时间、链接与缓存状态的有限新闻检索 |
+| `get_stock_related_news` | `data/information` | 公司与概念消息的关联依据和时间线 |
+| `get_global_market_news` | `data/information` | 官方政策发布与有限全球市场新闻 |
+| `analyze_stock_financials` | `data/information` | 多期财务指标及指定同业同报告期比较 |
+
 
 ### MCP call contract
 
 Every tool publishes a JSON Schema. The server validates required and unknown fields, basic types, enum values, and numeric ranges. Results use `{data, meta, warnings, error}`: check `error` first, preserve `warnings`, and use both `meta` and the data cutoff date for freshness. The server does not provide persistent monitoring, push notifications, or deterministic buy/sell decisions.
 
-Ships with **8 Agent Skills** (installed automatically by `stock-analysis install`):
+Ships with **12 Agent Skills** (installed automatically by `stock-analysis install`):
 
 | Skill | Purpose |
 |-------|---------|
@@ -437,3 +437,12 @@ The installer includes chart dependencies. CI tests both supported MCP SDK gener
 ## License
 
 MIT License
+
+### News and financial Skills
+
+| Skill | Purpose |
+|---|---|
+| `stock-analysis-news` | News evidence and citations |
+| `stock-analysis-related-news` | Company/concept event timelines |
+| `stock-analysis-global-markets` | Macro policy and global market context |
+| `stock-analysis-financials` | Multi-period financial metrics and peers |

@@ -4,12 +4,12 @@ Essential guidance for Claude Code. See [AGENTS.md](AGENTS.md) for operational d
 
 ## Project
 
-Local-first A-share intelligent research MCP. A Node ESM shim launches the Python stdio server, which exposes 20 tools and stores user-owned stock/sector data in WAL-mode SQLite. Eight Agent Skills compose the tools into data maintenance, screening, chart review, single-stock analysis, multi-timeframe analysis, rising-pattern research, and backtesting.
+Local-first A-share intelligent research MCP. A Node ESM shim launches the Python stdio server, which exposes 24 tools and stores user-owned stock/sector data in WAL-mode SQLite. Twelve Agent Skills compose the tools into data maintenance, screening, chart review, single-stock analysis, multi-timeframe analysis, rising-pattern research, and backtesting.
 
 ## Runtime
 
 - `index.js`: resolves `STOCK_ANALYSIS_PYTHON` → managed `runtime.json` → `python`, sets `PYTHONPATH`, and proxies stdio.
-- `src/stock_analysis_mcp/server.py`: real MCP server and 20-tool `@register` registry.
+- `src/stock_analysis_mcp/server.py`: real MCP server and 24-tool `@register` registry.
 - `bin/` and `lib/`: installer/configuration/agent adapters; root `skills/` is copied dynamically to Claude Code, Codex and Qoder.
 - Every tool result is `{data, meta, warnings, error}`.
 

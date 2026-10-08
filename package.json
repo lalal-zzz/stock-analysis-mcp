@@ -79,7 +79,11 @@
       "screen_rising_candidates",
       "prepare_stock_analysis",
       "find_cross_timeframe_similar_patterns",
-      "backtest_pattern_strategy"
+      "backtest_pattern_strategy",
+      "search_market_news",
+      "get_stock_related_news",
+      "get_global_market_news",
+      "analyze_stock_financials"
     ]
   },
   "publishConfig": {

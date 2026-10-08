@@ -1,7 +1,6 @@
 """
 股票分析 MCP Server — 精简入口
-暴露 20 个核心工具: 保留原15个兼容接口, 新增全市场同步、上涨候选、
-逐股分析数据包、跨周期相似形态与双层回测5个高级工具。
+暴露24个工具，包含行情、结构研究、新闻和财务证据。
 """
 
 import asyncio
@@ -459,6 +458,52 @@ async def _backtest_strategy(start="2010-01-01", end=None, patterns=None, sample
 
 
 # ═══════════════════ MCP 生命周期 ═══════════════════
+
+_NEWS_PROPERTIES = {
+    "query": {"type": "string"},
+    "days": {"type": "integer", "minimum": 1, "maximum": 365},
+    "limit": {"type": "integer", "minimum": 1, "maximum": 100},
+    "offline": {"type": "boolean", "description": "只读资讯缓存，不发起网络请求"},
+}
+
+
+@register("search_market_news", "有限来源新闻搜索：官方Fed/ECB RSS和东方财富关键词，披露发布时间、链接、缓存与覆盖范围", {
+    "type": "object", "properties": _NEWS_PROPERTIES, "required": [],
+})
+async def _news(query="", days=7, limit=30, offline=False):
+    from .data.information import search_news
+    return await asyncio.to_thread(search_news, query, days, limit, offline)
+
+
+@register("get_stock_related_news", "股票与用户指定概念的消息时间线；保留关联检索依据，不推断因果影响", {
+    "type": "object", "properties": {
+        **{k: v for k, v in _NEWS_PROPERTIES.items() if k != "query"},
+        "symbol": {"type": "string"}, "concepts": {"type": "array", "items": {"type": "string"}},
+    }, "required": ["symbol"],
+})
+async def _related_news(symbol, concepts=None, days=30, limit=30, offline=False):
+    from .data.information import stock_news
+    return await asyncio.to_thread(stock_news, symbol, concepts, days, limit, offline)
+
+
+@register("get_global_market_news", "全球市场新闻与官方宏观政策背景，保留来源范围；不提供实时行情报价", {
+    "type": "object", "properties": _NEWS_PROPERTIES, "required": [],
+})
+async def _global_news(query="全球市场", days=7, limit=30, offline=False):
+    from .data.information import global_market_news
+    return await asyncio.to_thread(global_market_news, query, days, limit, offline)
+
+
+@register("analyze_stock_financials", "A股多期财务指标与指定同业同报告期比较：盈利、成长、现金流、偿债能力及来源证据", {
+    "type": "object", "properties": {
+        "symbol": {"type": "string"}, "periods": {"type": "integer", "minimum": 1, "maximum": 20},
+        "peers": {"type": "array", "items": {"type": "string"}}, "offline": {"type": "boolean"},
+    }, "required": ["symbol"],
+})
+async def _financials(symbol, periods=8, peers=None, offline=False):
+    from .data.information import financial_analysis
+    return await asyncio.to_thread(financial_analysis, symbol, periods, peers, offline)
+
 
 @_sdk_decorator("list_tools")
 async def list_tools() -> list[Tool]:

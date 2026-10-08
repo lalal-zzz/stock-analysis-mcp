@@ -22,7 +22,7 @@ The first research horizon is 5–20 trading days. Automatic order placement, li
 
 ### Data reliability
 
-- Preserve the original 15 MCP APIs and add five research APIs, for 20 total.
+- Preserve the original 15 MCP APIs and add five research APIs, for 24 total, including four news/financial evidence APIs.
 - Support `quick`, `research` (at least 320 daily bars per eligible stock), and resumable long-history `full` initialization.
 - Reuse existing databases. Legacy K-line/indicator schemas migrate in place without copying or deleting multi-gigabyte files.
 - Distinguish QFQ/HFQ/unadjusted data by adjustment type and retain provider/fetch metadata.
@@ -80,6 +80,15 @@ forming → candidate → triggered → confirmed → retesting
 - Opt-in reviewed rule registry with effective dates and attributed activation/rollback.
 - Python/Node CI matrix, publication checks and chart dependencies in managed installations.
 
+## News and financial evidence implemented
+
+- Four registered tools and four Skills, official Fed/ECB RSS plus bounded Eastmoney search and financial requests.
+- Source dates/URLs, publisher/provider separation, excerpts, TTL caches, stale fallback and offline mode.
+- Company/local-sector/user-concept search evidence and timelines; no automatic causal attribution.
+- Multi-period financial metrics and specified same-period peers; missing values stay null.
+- Complete statements, live global quotes and industry-chain knowledge graphs remain outside this first implementation.
+- Source evidence and bounded live checks: `docs/information-sources.md`.
+
 ## Remaining evidence and modeling limits
 
 - Classify historical gaps using authoritative listing, suspension and delisting records; never invent missing bars.
@@ -91,8 +100,8 @@ forming → candidate → triggered → confirmed → retesting
 ## Acceptance criteria
 
 - Python unit tests and Node adapter tests pass.
-- MCP registry and `package.json` expose the same 20 tools.
-- All eight Skills pass the skill validator and use current tool names/parameters.
+- MCP registry and `package.json` expose the same 24 tools.
+- All twelve Skills pass the skill validator and use current tool names/parameters.
 - README, architecture, agent guidance and implementation plan agree on tool/skill counts and workflow.
 - Old databases retain rows through migration; adjustment variants coexist.
 - Market-wide outputs disclose coverage and suppress completion claims below 95%.

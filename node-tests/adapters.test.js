@@ -1,6 +1,6 @@
 import test from "node:test"
 import assert from "node:assert/strict"
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { createHash } from "node:crypto"
@@ -64,7 +64,9 @@ test("Qoder adapter installs mcp server and skills", () => {
   assert.equal(adapter.detect(), true)
   const command = { command: "node", args: ["server.js"] }
   const result = adapter.install(process.cwd(), command)
-  assert.equal(result.skills.length, 8)
+  const skillIds = readdirSync(join(process.cwd(), "skills"), { withFileTypes: true }).filter(entry => entry.isDirectory()).map(entry => entry.name)
+  assert.equal(result.skills.length, skillIds.length)
+  for (const id of skillIds) assert.ok(existsSync(join(home, ".qoder", "skills", id, "SKILL.md")))
   assert.ok(existsSync(join(home, ".qoder", "skills", "stock-analysis", "SKILL.md")))
   const config = JSON.parse(readFileSync(adapter.configPath(), "utf8"))
   assert.deepEqual(config.mcpServers["stock-analysis"], command)

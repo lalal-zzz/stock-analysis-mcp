@@ -1,6 +1,6 @@
 ---
 name: stock-analysis
-description: Route A-share research requests across the Stock Analysis MCP data, screening, chart, report, multi-timeframe, rising-pattern, and backtest workflows. Use for broad stock-research requests or when the correct specialized workflow is unclear.
+description: Route stock research across data, screening, chart, report, multi-timeframe, rising-pattern, backtest, news and financial workflows. Use for broad stock-research requests or when the correct specialized workflow is unclear.
 ---
 
 # Stock Analysis research router
@@ -27,6 +27,12 @@ Call `get_data_status` before market-wide work or when freshness matters.
 | Compare monthly/weekly/daily/intraday structure or historical shape similarity | `stock-analysis-multi-timeframe` | `prepare_stock_analysis`, `get_stock_kline_period`, `find_cross_timeframe_similar_patterns` |
 | Read candlestick images, trendlines, channels, ranges, W/M, and directional position | `stock-analysis-chart-trend` | `render_stock_charts`, `get_key_levels` |
 | Validate signals or candidate rules | `stock-analysis-strategy-backtest` | `backtest_pattern_strategy`, pattern backtest/optimize CLI |
+| News and official policy releases | `stock-analysis-news` | `search_market_news` |
+| Company/concept news timelines | `stock-analysis-related-news` | `get_stock_related_news` |
+| Global macro and market news context | `stock-analysis-global-markets` | `get_global_market_news` |
+| Financial metrics and same-period peers | `stock-analysis-financials` | `analyze_stock_financials` |
+
+News/financial requests do not require stock-history initialization. Respect offline=true when downloads are paused. These tools disclose bounded source/cache coverage; they do not provide a complete web search, real-time global quotes or complete financial statements.
 
 ## Shared analysis contract
 
