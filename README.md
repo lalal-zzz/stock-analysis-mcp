@@ -177,7 +177,7 @@ pip install stock-analysis-mcp
 
 Every tool publishes a JSON Schema. The server validates required and unknown fields, basic types, enum values, and numeric ranges. Results use `{data, meta, warnings, error}`: check `error` first, preserve `warnings`, and use both `meta` and the data cutoff date for freshness. The server does not provide persistent monitoring, push notifications, or deterministic buy/sell decisions.
 
-Ships with **12 Agent Skills** (installed automatically by `stock-analysis install`):
+Ships with **13 Agent Skills** (installed automatically by `stock-analysis install`):
 
 | Skill | Purpose |
 |-------|---------|
@@ -189,6 +189,17 @@ Ships with **12 Agent Skills** (installed automatically by `stock-analysis insta
 | `stock-analysis-strategy-backtest` | Chart pattern backtesting and parameter optimization |
 | `stock-analysis-chart-trend` | Per-stock visual structure attribution with pivot and line uncertainty checks |
 | `stock-analysis-rising-patterns` | Rank 20 candidates, deeply review every monthly/weekly/daily chart, and summarize common traits |
+| [a-share-dividends](skills/a-share-dividends/SKILL.md) | Historical/latest dividends and announced future dates, with source and coverage checks |
+
+### A-share dividends
+
+This project owns [a-share-dividends](skills/a-share-dividends/SKILL.md), migrated from the sibling trading repository. Its standalone script queries Eastmoney by symbol or report period, checks pagination and archives raw JSON. Formal-announcement verification is an agent workflow; payment dates, full-market latest-event coverage and account adjustments are not automatically completed by this script. It is a Skill helper, not an additional registered MCP tool.
+
+```powershell
+python -X utf8 skills/a-share-dividends/scripts/fetch_dividends.py --symbol 000001 --as-of 2026-10-09 --output <output-dir>/000001-dividends-20261009.json
+```
+
+Use an existing output directory and a new filename. Source limits and field definitions are in [references/sources.md](skills/a-share-dividends/references/sources.md).
 
 ### What each Skill delivers
 

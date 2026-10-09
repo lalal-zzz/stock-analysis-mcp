@@ -1,0 +1,4 @@
+interface:
+  display_name: "A股分红公告与日期"
+  short_description: "查询沪深北A股分红公告、登记日、除权除息日和派息日，核对方案进度与覆盖缺口"
+  default_prompt: "使用 $a-share-dividends 查询全A股最近公布的分红方案和日期，并标明公告来源与覆盖范围。"

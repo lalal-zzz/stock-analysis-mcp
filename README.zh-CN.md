@@ -173,7 +173,7 @@ pip install stock-analysis-mcp
 每个工具都公开 JSON Schema；服务端会校验必填字段、未知字段、基础类型、枚举值和数值范围。调用结果统一为 `{data, meta, warnings, error}`：先检查 `error`，再保留 `warnings`，并以 `meta` 和数据自身的截止日期判断新鲜度。工具不会承诺持续监控、推送通知或确定性买卖结论。
 
 
-附带 **12 个 Agent Skill**（由 `stock-analysis install` 自动安装），教授 AI 如何组合使用这些工具完成复杂选股和报告工作流：
+附带 **13 个 Agent Skill**（由 `stock-analysis install` 自动安装），教授 AI 如何组合使用这些工具完成复杂选股和报告工作流：
 
 | Skill | 用途 |
 |-------|------|
@@ -185,6 +185,17 @@ pip install stock-analysis-mcp
 | `stock-analysis-strategy-backtest` | 策略回测与参数调优指南 |
 | `stock-analysis-chart-trend` | K线图结构归因与趋势线分析 |
 | `stock-analysis-rising-patterns` | 20只上涨形态候选逐股月周日深度分析 |
+| [a-share-dividends](skills/a-share-dividends/SKILL.md) | 历史、最新及已公告的未来分红，核验日期、来源与覆盖范围 |
+
+### A 股分红查询
+
+[a-share-dividends](skills/a-share-dividends/SKILL.md) 已从相邻交易项目迁入，由本数据接口项目维护。独立脚本按单股或报告期查询东方财富数据，检查分页并归档原始 JSON；正式公告核验由 Agent 执行。脚本尚未自动补齐派息日、全市场逐股最近事件或账户复权。这是 Skill 辅助脚本，不是新增的已注册 MCP 工具。
+
+```powershell
+python -X utf8 skills/a-share-dividends/scripts/fetch_dividends.py --symbol 000001 --as-of 2026-10-09 --output <output-dir>/000001-dividends-20261009.json
+```
+
+输出目录应已存在，每次使用新文件名。字段和来源限制见 [references/sources.md](skills/a-share-dividends/references/sources.md)。
 
 ### 每个 Skill 的结果展示
 
