@@ -1,6 +1,6 @@
 """
 股票分析 MCP Server — 精简入口
-暴露25个工具，包含行情、结构研究、新闻和多源A股财务下载分析。
+暴露30个工具，包含股票、多品种行情、基金净值、结构研究、新闻和A股财务。
 """
 
 import asyncio
@@ -519,6 +519,69 @@ async def _financials(symbol, periods=8, peers=None, offline=False, provider="au
 async def _download_financials(symbol, provider="auto", report_type="indicators", periods=8, offline=False, refresh=False):
     from .data.financials import download_financials
     return await asyncio.to_thread(download_financials, symbol, provider, report_type, periods, offline, refresh)
+
+
+_ASSET_PROPERTIES = {
+    "symbol": {"type": "string", "description": "六位代码；交易所标的需市场前缀或market"},
+    "asset_type": {"type": "string", "enum": ["index", "etf", "lof", "fund", "convertible_bond", "bond"]},
+    "market": {"type": "string", "enum": ["sh", "sz", "csi", "otc"]},
+    "offline": {"type": "boolean", "description": "仅使用缓存，不联网"},
+}
+_ASSET_PAGING = {
+    "page": {"type": "integer", "minimum": 1, "maximum": 1000},
+    "page_size": {"type": "integer", "minimum": 1, "maximum": 100},
+}
+_ASSET_DATES = {
+    "start_date": {"type": "string", "description": "YYYY-MM-DD，默认2020-01-01"},
+    "end_date": {"type": "string", "description": "YYYY-MM-DD，默认今天"},
+}
+
+
+@register("list_market_instruments", "分页查询指数、ETF/LOF、基金目录、可转债及沪深交易所债券行情；披露分页和来源，不代表全市场同步", {
+    "type": "object", "properties": {"asset_type": _ASSET_PROPERTIES["asset_type"],
+        "offline": _ASSET_PROPERTIES["offline"], **_ASSET_PAGING}, "required": ["asset_type"],
+})
+async def _asset_list(asset_type, page=1, page_size=100, offline=False):
+    from .data.assets import list_instruments
+    return await asyncio.to_thread(list_instruments, asset_type, page, page_size, offline)
+
+
+@register("get_market_quote", "按市场+品种+代码查询行情，在最多50页品种目录内确认标的；场外基金请使用get_fund_nav；缓存/延迟行情不保证实时", {
+    "type": "object", "properties": _ASSET_PROPERTIES, "required": ["symbol", "asset_type"],
+})
+async def _asset_quote(symbol, asset_type, market=None, offline=False):
+    from .data.assets import get_quote
+    return await asyncio.to_thread(get_quote, symbol, asset_type, market, offline)
+
+
+@register("get_market_kline", "指数、ETF/LOF、可转债日/周/月未复权K线；独立缓存，不混入股票库，普通债券历史尚未接入", {
+    "type": "object", "properties": {**_ASSET_PROPERTIES, **_ASSET_DATES,
+        "asset_type": {"type": "string", "enum": ["index", "etf", "lof", "convertible_bond"]},
+        "period": {"type": "string", "enum": ["daily", "weekly", "monthly"]},
+        "limit": {"type": "integer", "minimum": 1, "maximum": 2000}}, "required": ["symbol", "asset_type"],
+})
+async def _asset_kline(symbol, asset_type, market=None, start_date="2020-01-01", end_date=None,
+                       period="daily", limit=320, offline=False):
+    from .data.assets import get_kline
+    return await asyncio.to_thread(get_kline, symbol, asset_type, market, start_date, end_date, period, limit, offline)
+
+
+@register("get_fund_nav", "基金分页历史单位/累计净值与申赎状态；不作为盘中行情，货币基金收益指标尚未接入", {
+    "type": "object", "properties": {"symbol": _ASSET_PROPERTIES["symbol"],
+        "offline": _ASSET_PROPERTIES["offline"], **_ASSET_DATES, **_ASSET_PAGING}, "required": ["symbol"],
+})
+async def _asset_nav(symbol, start_date="2020-01-01", end_date=None, page=1, page_size=100, offline=False):
+    from .data.assets import get_nav
+    return await asyncio.to_thread(get_nav, symbol, start_date, end_date, page, page_size, offline)
+
+
+@register("get_convertible_bond_info", "可转债行情、正股关联、转股价/价值/溢价率与条款触发价；不代表强赎公告或到期收益率", {
+    "type": "object", "properties": {key: value for key, value in _ASSET_PROPERTIES.items() if key != "asset_type"},
+    "required": ["symbol"],
+})
+async def _asset_convertible(symbol, market=None, offline=False):
+    from .data.assets import get_convertible
+    return await asyncio.to_thread(get_convertible, symbol, market, offline)
 
 
 @_sdk_decorator("list_tools")

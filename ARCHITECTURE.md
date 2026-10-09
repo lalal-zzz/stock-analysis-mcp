@@ -8,7 +8,7 @@
 MCP client
   → index.js (Node ESM stdio shim)
   → python -m stock_analysis_mcp.server
-  → 25 registered MCP handlers
+  → 30 registered MCP handlers
   → data / tools / strategies
   → user-owned SQLite databases and report/chart files
 ```
@@ -27,6 +27,7 @@ src/stock_analysis_mcp/
 │   ├── providers/             # Tencent, Sina, Sohu and board-name mapping adapters
 │   ├── network.py             # curl_cffi, cookies, IPv4, retries and circuit breakers
 │   ├── sources.py             # spot, daily K-line, popularity and trade-calendar sources
+│   ├── assets.py              # explicit market/type/code, multi-asset paging, quotes/K-lines/NAV
 │   ├── storage/               # stock/sector SQLite schemas, readers and writers
 │   ├── search.py              # local queries and coverage/status reporting
 │   ├── sync.py                # quick/research/full initialization and daily sync
@@ -51,9 +52,9 @@ src/stock_analysis_mcp/
 │   └── trading_backtest.py    # callable event + executable trading backtest
 ├── charting.py                # daily/weekly/monthly PNG rendering
 ├── cli.py                     # maintenance and strategy CLI
-└── server.py                  # 25-tool MCP registry
+└── server.py                  # 30-tool MCP registry
 
-skills/                        # twelve Agent Skills, discovered dynamically
+skills/                        # thirteen Agent Skills, discovered dynamically
 index.js                       # Node-to-Python stdio shim
 bin/ and lib/                  # installer, configuration and agent adapters
 ```

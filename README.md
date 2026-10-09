@@ -142,7 +142,7 @@ pip install stock-analysis-mcp
 
 ---
 
-## MCP Tools (25 tools)
+## MCP Tools (30 tools)
 
 | Tool | Module | Purpose |
 |------|--------|---------|
@@ -171,7 +171,40 @@ pip install stock-analysis-mcp
 | `get_global_market_news` | `data/information` | 官方政策发布与有限全球市场新闻 |
 | `analyze_stock_financials` | `data/information` | 多期财务指标及指定同业同报告期比较 |
 | `download_stock_financials` | `data/financials` | A股多源财务下载：搜狐/新浪报表、腾讯摘要与主营构成、东方财富指标；独立缓存与分析 |
+| `list_market_instruments` | `data/assets` | Paged index, ETF/LOF, fund directory, convertible and SH/SZ exchange bond data |
+| `get_market_quote` | `data/assets` | Confirm market/type/code in the source directory and return a delayed or cached quote |
+| `get_market_kline` | `data/assets` | Unadjusted daily/weekly/monthly index, ETF/LOF and convertible bond K-lines |
+| `get_fund_nav` | `data/assets` | Paged unit/accumulated NAV and subscription/redemption status |
+| `get_convertible_bond_info` | `data/assets` | Underlying stock, conversion price/value/premium and reference trigger prices |
 
+Multi-asset tools query data on demand without stock initialization. Specify the market explicitly, e.g. `sh000001` with `asset_type=index`; fund NAV `000001` has a separate identity. Data uses namespaced JSON caches and is not included in stock screening, pattern scans or backtests. Bond data covers exchange quotes, not interbank bonds or yields. See [multi-asset examples, sources and limits](docs/multi-asset-data.md).
+
+
+### Search ETFs and retrieve K-lines through a Skill
+
+The `stock-analysis` Skill includes multi-asset routing. For example, ask your agent:
+
+> Find STAR 50 ETFs, list their codes and names, then retrieve year-to-date daily K-lines for ChinaAMC STAR 50 ETF (588000).
+
+The agent calls `list_market_instruments(asset_type="etf", page=1, page_size=100)`, follows `has_more`, filters names, and confirms the market/type/code identity. There is no dedicated keyword search parameter yet. STAR 50, STAR & ChiNext 50, and STAR 50 enhanced products should be separated. If pagination fails, report incomplete coverage rather than presenting a partial list as complete.
+
+After confirming `sh588000`, call `get_market_kline` with these arguments:
+
+```json
+{
+  "symbol": "sh588000",
+  "asset_type": "etf",
+  "start_date": "2026-01-01",
+  "period": "daily",
+  "limit": 320
+}
+```
+
+`period` supports `daily`, `weekly`, and `monthly`. The tool returns at most `limit` unadjusted bars within the requested date range. Adjust `start_date` for another year; omitting `end_date` uses today's date in Asia/Shanghai. Use `get_market_quote` for quotes and `get_fund_nav` for fund NAV. Ordinary bonds currently support lists and quotes only.
+
+These on-demand queries do not require stock database initialization. `offline=true` reads only the matching request cache; results disclose cache misses, unavailable sources, and stale data. ETF K-lines are not yet integrated with the existing stock chart renderer, pattern scanners, or backtests.
+
+After updating source, restart the MCP service that uses this project's entrypoint. If your agent uses a previously installed Skill copy, also update its `stock-analysis/SKILL.md`; editing repository files does not automatically replace installed copies.
 
 ### MCP call contract
 
@@ -181,7 +214,7 @@ Ships with **13 Agent Skills** (installed automatically by `stock-analysis insta
 
 | Skill | Purpose |
 |-------|---------|
-| `stock-analysis` | Main index — check data readiness before research |
+| `stock-analysis` | Main router — stock research readiness plus index, ETF/LOF, fund NAV and bond queries |
 | `stock-analysis-data-init` | Existing-data reuse, initialization, coverage-aware updates and troubleshooting |
 | `stock-analysis-stock-screening` | Composing screening conditions and workflows |
 | `stock-analysis-report-generation` | Evidence-based single-stock report and conditional scenarios |

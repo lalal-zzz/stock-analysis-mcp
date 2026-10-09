@@ -84,7 +84,12 @@
       "get_stock_related_news",
       "get_global_market_news",
       "analyze_stock_financials",
-      "download_stock_financials"
+      "download_stock_financials",
+      "list_market_instruments",
+      "get_market_quote",
+      "get_market_kline",
+      "get_fund_nav",
+      "get_convertible_bond_info"
     ]
   },
   "publishConfig": {

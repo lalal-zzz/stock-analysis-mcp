@@ -3,6 +3,7 @@ on: [push, pull_request, workflow_dispatch]
 jobs:
   tests:
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
         python: ['3.10', '3.12']
@@ -16,7 +17,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '18'
-      - run: python -m pip install -e ".[dev,chart]" "${{ matrix.sdk }}"
-      - run: python -m pytest -q
-      - run: npm run test:node
-      - run: python -m stock_analysis_mcp.cli rebuild --dry-run
+      - name: Install Python dependencies
+        run: python -m pip install -e ".[dev,chart]" "${{ matrix.sdk }}"
+      - name: Run Python unit tests
+        run: python -m pytest -q
+      - name: Run Node installer tests
+        run: npm run test:node
+      - name: Validate CLI dry run
+        run: python -m stock_analysis_mcp.cli rebuild --dry-run

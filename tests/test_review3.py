@@ -93,20 +93,24 @@ def test_ttl_cache_expiry():
 
 def test_skills_layout():
     skills = sorted(d.name for d in (REPO / "skills").iterdir() if d.is_dir())
-    assert skills == [
+    # Adapters discover skills dynamically. New valid skills are allowed, while
+    # removal of a required workflow and malformed directories still fail.
+    required_skills = {
+        "a-share-dividends",
         "stock-analysis",
         "stock-analysis-chart-trend",
         "stock-analysis-data-init",
         "stock-analysis-financials",
         "stock-analysis-global-markets",
-            "stock-analysis-multi-timeframe",
+        "stock-analysis-multi-timeframe",
         "stock-analysis-news",
         "stock-analysis-related-news",
-            "stock-analysis-report-generation",
-            "stock-analysis-rising-patterns",
-            "stock-analysis-stock-screening",
+        "stock-analysis-report-generation",
+        "stock-analysis-rising-patterns",
+        "stock-analysis-stock-screening",
         "stock-analysis-strategy-backtest",
-    ]
+    }
+    assert required_skills <= set(skills), f"Missing required skills: {required_skills - set(skills)}"
     for d in skills:
         assert (REPO / "skills" / d / "SKILL.md").exists(), d
         head = (REPO / "skills" / d / "SKILL.md").read_text(encoding="utf-8").splitlines()[:4]

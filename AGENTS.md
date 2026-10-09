@@ -3,7 +3,7 @@
 ## Architecture
 
 - **Dual-runtime**: `index.js` (Node shim, ESM) spawns `python -m stock_analysis_mcp.server` via stdio and proxies I/O. The Python server is the real MCP implementation. Python interpreter resolution: `STOCK_ANALYSIS_PYTHON` env → `~/.stock-analysis/runtime.json` (uv-managed venv) → `python`.
-- **Entrypoint**: `src/stock_analysis_mcp/server.py` — uses `mcp.server.stdio` and a `@register(name, desc, schema)` decorator to wire 25 tools to MCP handlers; every result is wrapped in a `{data, meta, warnings, error}` envelope. The dispatcher validates required/unknown fields, basic JSON types, enum values, and numeric ranges, and promotes handler warnings to the outer envelope.
+- **Entrypoint**: `src/stock_analysis_mcp/server.py` — uses `mcp.server.stdio` and a `@register(name, desc, schema)` decorator to wire 30 tools to MCP handlers; every result is wrapped in a `{data, meta, warnings, error}` envelope. The dispatcher validates required/unknown fields, basic JSON types, enum values, and numeric ranges, and promotes handler warnings to the outer envelope.
 - **Node CLI**: `bin/stock-analysis.js` + `lib/` — installer commands `install` / `setup` / `doctor` / `uninstall` / `config show`. `lib/installer.js` creates a `uv` venv under `~/.stock-analysis/runtime/` and writes `config.toml` / `runtime.json` / `install-state.json`; `lib/adapters.js` auto-configures 5 agents with backups — Claude Code (`~/.claude.json`), Codex (`~/.codex/config.toml`), Cursor (`~/.cursor/mcp.json`), VS Code Copilot (user `mcp.json`, `servers` key + `type: stdio`), Qoder (`~/.qoder/mcp.json`) — and copies the skills from root `skills/` to skill-aware agents (Claude Code / Codex / Qoder); skill ids = `skills/` directory names, discovered dynamically (no mapping table); `lib/paths.js` centralizes `~/.stock-analysis` paths.
 - **Source layout**:
   - `core/config.py` — settings resolution: env vars → `~/.stock-analysis/config.toml` → defaults (`get_settings()`)
@@ -133,7 +133,7 @@ Settings resolve as **env var → `~/.stock-analysis/config.toml` → default** 
 
 The Node shim sets `PYTHONPATH` to include `src/` automatically.
 
-## MCP tools (25 registered)
+## MCP tools (30 registered)
 
 | Tool | Module | Purpose |
 |------|--------|---------|
@@ -162,6 +162,13 @@ The Node shim sets `PYTHONPATH` to include `src/` automatically.
 | `get_global_market_news` | `data/information` | 官方政策发布与有限全球市场新闻 |
 | `analyze_stock_financials` | `data/information` | 多期财务指标及指定同业同报告期比较 |
 | `download_stock_financials` | `data/financials` | A股多源财务下载：搜狐/新浪报表、腾讯摘要与主营构成、东方财富指标；独立缓存与分析 |
+| `list_market_instruments` | `data/assets` | Paged index, ETF/LOF, fund directory, convertible and SH/SZ exchange bond data |
+| `get_market_quote` | `data/assets` | Market/type/code identity verified in bounded source directory pages |
+| `get_market_kline` | `data/assets` | Unadjusted daily/weekly/monthly index, ETF/LOF and convertible K-lines, separate cache |
+| `get_fund_nav` | `data/assets` | Paged unit/accumulated NAV and subscription/redemption status |
+| `get_convertible_bond_info` | `data/assets` | Underlying stock, conversion price/value/premium and reference triggers |
+
+Multi-asset data uses `data/assets.py` and `assets:v1:` JSON cache keys under information-cache. Require explicit exchange market/type/code; never reuse A-share market guessing for funds, bonds or indices. New tools do not participate in stock database synchronization, screening, charting or backtests. See `docs/multi-asset-data.md` for provider and paging limits. NAV is not OHLC, IOPV is not published NAV, and redemption triggers are not announcements. All new requests go through the existing network layer.
 
 
 ## Local data workflow
@@ -181,7 +188,7 @@ Unregistered library helpers used by Skills/internal code: `get_sector_members_f
 
 ## Tool registration gotcha
 
-Tools are wired via the `@register(name, desc, schema)` decorator in `server.py` — **25 tools** are registered: the original 15 plus `sync_stock_kline_universe`, `screen_rising_candidates`, `prepare_stock_analysis`, `find_cross_timeframe_similar_patterns`, `backtest_pattern_strategy`, and five news/financial tools. The pattern and long-running research functions are dispatched with `asyncio.to_thread`. Keep `package.json`, README files, and Skill tool tables in sync with the registry.
+Tools are wired via the `@register(name, desc, schema)` decorator in `server.py` — **30 tools** are registered: the original 15 plus `sync_stock_kline_universe`, `screen_rising_candidates`, `prepare_stock_analysis`, `find_cross_timeframe_similar_patterns`, `backtest_pattern_strategy`, five news/financial tools and five multi-asset tools. The pattern, research and multi-asset functions are dispatched with `asyncio.to_thread`. Keep `package.json`, README files, and Skill tool tables in sync with the registry.
 
 ## Skill format
 

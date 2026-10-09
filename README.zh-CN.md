@@ -138,7 +138,7 @@ pip install stock-analysis-mcp
 
 ---
 
-## MCP 工具 (25 个)
+## MCP 工具 (30 个)
 
 | 工具 | 功能 |
 |------|------|
@@ -167,6 +167,39 @@ pip install stock-analysis-mcp
 | `get_global_market_news` | 官方政策发布与有限全球市场新闻 |
 | `analyze_stock_financials` | 多期财务指标及指定同业同报告期比较 |
 | `download_stock_financials` | A股多源财务下载：搜狐/新浪报表、腾讯摘要与主营构成、东方财富指标；独立缓存与分析 |
+| `list_market_instruments` | 分页指数、ETF/LOF、基金目录、可转债和沪深交易所债券行情 |
+| `get_market_quote` | 明确市场／品种／代码并在源目录确认后查询行情，保留延迟和缓存状态 |
+| `get_market_kline` | 指数、ETF/LOF、可转债日／周／月未复权 K 线；普通债券历史暂未接入 |
+| `get_fund_nav` | 分页单位／累计净值及申赎状态 |
+| `get_convertible_bond_info` | 正股关联、转股价／价值／溢价率和条款参考触发价 |
+
+多品种数据按需查询，无需股票初始化，身份为市场＋品种＋代码。例如 `sh000001` 配合 `asset_type=index` 与基金净值 `000001` 分开缓存。新数据未接入股票筛选、形态扫描或回测。债券先覆盖交易所报价，尚未覆盖银行间、收益率、评级和强赎公告。使用方式、来源和边界见[多品种数据文档](docs/multi-asset-data.md)。
+
+### 用 Skill 搜索 ETF 并获取 K 线
+
+`stock-analysis` Skill 已包含多品种查询路由。可以直接对 AI 说：
+
+> 搜索科创50 ETF，列出代码和名称，再获取华夏科创50 ETF（588000）今年以来的日 K 线。
+
+AI 先调用 `list_market_instruments(asset_type="etf", page=1, page_size=100)`，根据返回的 `has_more` 继续分页，对名称进行关键词筛选，再确认市场、品种和代码。当前没有独立的关键词搜索参数；“科创50”“科创创业50”和“科创50增强”需要分开识别。分页失败时应说明覆盖不足，不能把部分结果当作完整清单。
+
+确认 `sh588000` 后，调用 `get_market_kline`，参数示例：
+
+```json
+{
+  "symbol": "sh588000",
+  "asset_type": "etf",
+  "start_date": "2026-01-01",
+  "period": "daily",
+  "limit": 320
+}
+```
+
+`period` 支持 `daily`、`weekly`、`monthly`，返回指定区间最多 `limit` 根未复权 K 线。指定其他年份时调整 `start_date`；省略 `end_date` 使用上海时区今天。获取行情可用 `get_market_quote`；场外基金使用 `get_fund_nav` 查询净值，普通债券目前只提供列表和报价。
+
+这些查询按需进行，无需初始化股票数据库。`offline=true` 只读取对应请求的缓存；缓存缺失、源不可用或缓存过期都会在结果中说明。ETF K 线暂未接入原有股票画图、形态扫描和回测工具。
+
+更新源码后需重启使用本项目入口的 MCP 服务。若 Agent 使用的是之前安装的 Skill 副本，还需同步更新对应 Agent 的 `stock-analysis/SKILL.md`；仅修改仓库文件不会自动替换已安装副本。
 
 ### MCP 调用约定
 
@@ -177,7 +210,7 @@ pip install stock-analysis-mcp
 
 | Skill | 用途 |
 |-------|------|
-| `stock-analysis` | 主索引 — 先查数据状态再开展研究的工作流 |
+| `stock-analysis` | 主索引 — 股票研究数据检查，以及指数、ETF/LOF、基金净值和债券查询路由 |
 | `stock-analysis-data-init` | 复用已有数据、初始化、覆盖率更新与故障排查 |
 | `stock-analysis-stock-screening` | 选股条件组合与筛选套路 |
 | `stock-analysis-report-generation` | 基于证据的单股报告与条件情景 |
