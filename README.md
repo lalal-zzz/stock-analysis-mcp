@@ -210,7 +210,7 @@ After updating source, restart the MCP service that uses this project's entrypoi
 
 Every tool publishes a JSON Schema. The server validates required and unknown fields, basic types, enum values, and numeric ranges. Results use `{data, meta, warnings, error}`: check `error` first, preserve `warnings`, and use both `meta` and the data cutoff date for freshness. The server does not provide persistent monitoring, push notifications, or deterministic buy/sell decisions.
 
-Ships with **13 Agent Skills** (installed automatically by `stock-analysis install`):
+Ships with **14 Agent Skills** (installed automatically by `stock-analysis install`):
 
 | Skill | Purpose |
 |-------|---------|
@@ -223,6 +223,22 @@ Ships with **13 Agent Skills** (installed automatically by `stock-analysis insta
 | `stock-analysis-chart-trend` | Per-stock visual structure attribution with pivot and line uncertainty checks |
 | `stock-analysis-rising-patterns` | Rank 20 candidates, deeply review every monthly/weekly/daily chart, and summarize common traits |
 | [a-share-dividends](skills/a-share-dividends/SKILL.md) | Historical/latest dividends and announced future dates, with source and coverage checks |
+| [stock-analysis-st-removal](skills/stock-analysis-st-removal/SKILL.md) | Forward-looking ordinary-ST removal research: current universe, trigger timeline, remaining conditions and evidence-backed windows |
+
+### Ordinary-ST removal research
+
+[stock-analysis-st-removal](skills/stock-analysis-st-removal/SKILL.md) matches each company's active warning causes to board-specific removal rules. Reports show the ST start date, actual cause, required evidence, removal thesis, remaining barriers and conditional window. Pre-application, submitted, approved-but-not-effective and effective events are distinguished. Profit/loss is an independent investment-risk filter, not a universal legal removal gate; the audited-profit **or** resolved-going-concern route is preserved where applicable.
+
+The [109-company example dated 2026-10-18](examples/st-removal/2026-10-18/README.md) includes HTML, CSV, JSON and rule notes. It correctly separates ST Juewei's disclosed removal decision (effective October 20) from pending applications. HTML supports window/evidence sorting and stage/profit filters while displaying warning dates and causes directly. This is a research snapshot, not a live recommendation or point-in-time backtest dataset.
+
+```powershell
+python -X utf8 skills/stock-analysis-st-removal/scripts/st_research_collect.py --output <new-report-directory> --as-of YYYY-MM-DD
+# Review original filings and write reviewed_notes.json before rendering.
+python -X utf8 skills/stock-analysis-st-removal/scripts/st_research_report.py <report-directory> --as-of YYYY-MM-DD --overrides <report-directory>/reviewed_notes.json
+python -X utf8 skills/stock-analysis-st-removal/scripts/st_research_refresh.py <report-directory> --project . --as-of YYYY-MM-DD --since YYYY-MM-DD
+```
+
+Replace the placeholders with actual dates/paths and overlap `--since` with the previous successful check. The [cause-specific rule reference](skills/stock-analysis-st-removal/references/removal-rules-2026.md) links official sources. Availability filtering uses actual publication time while retaining the printed notice date separately. Rendering is offline; refresh evidence and review conclusions before regenerating a current report. These helpers do not add a registered MCP tool.
 
 ### A-share dividends
 
@@ -248,6 +264,7 @@ The Skills are output-oriented: each one turns MCP tool results into a consisten
 | `stock-analysis-chart-trend` | Chart review card | Chart cutoff, pivots, trendlines/channels/ranges/W-M/Fibonacci zones, program-vs-chart agreement, volume evidence |
 | `stock-analysis-rising-patterns` | Candidate cards + comparison | One evidence card per returned stock, reviewed ranking, current-vs-history commonality, and coverage caveats |
 | `stock-analysis-strategy-backtest` | Backtest result pack | Universe/period, coverage, signal/trade counts, assumptions, event and portfolio metrics, train/test and yearly stability, report/CSV paths |
+| `stock-analysis-st-removal` | Cause-specific removal evidence table | ST date/cause, board rules, removal thesis, missing evidence, event stage, profit/loss risks, sources and freshness |
 
 Example compact result card:
 

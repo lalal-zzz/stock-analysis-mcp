@@ -1,0 +1,557 @@
+{
+  "source": "东方财富ST板块BK0511",
+  "fetched_at": "2026-10-18T22:43:12.208411+08:00",
+  "total_with_star": 201,
+  "ordinary_count": 109,
+  "pages": 3,
+  "complete": true,
+  "exchange_certified": false,
+  "beijing_coverage_verified": false,
+  "stocks": [
+    {
+      "code": "000078",
+      "name": "ST海王",
+      "market": 0
+    },
+    {
+      "code": "000488",
+      "name": "ST晨鸣",
+      "market": 0
+    },
+    {
+      "code": "000632",
+      "name": "ST三木",
+      "market": 0
+    },
+    {
+      "code": "000639",
+      "name": "ST西王",
+      "market": 0
+    },
+    {
+      "code": "000669",
+      "name": "ST金鸿",
+      "market": 0
+    },
+    {
+      "code": "000677",
+      "name": "ST海龙",
+      "market": 0
+    },
+    {
+      "code": "000698",
+      "name": "ST沈化",
+      "market": 0
+    },
+    {
+      "code": "000793",
+      "name": "ST华闻",
+      "market": 0
+    },
+    {
+      "code": "000821",
+      "name": "ST京机",
+      "market": 0
+    },
+    {
+      "code": "000903",
+      "name": "ST云动",
+      "market": 0
+    },
+    {
+      "code": "002024",
+      "name": "ST易购",
+      "market": 0
+    },
+    {
+      "code": "002055",
+      "name": "ST得润",
+      "market": 0
+    },
+    {
+      "code": "002082",
+      "name": "ST万邦",
+      "market": 0
+    },
+    {
+      "code": "002102",
+      "name": "ST能特",
+      "market": 0
+    },
+    {
+      "code": "002109",
+      "name": "ST兴化",
+      "market": 0
+    },
+    {
+      "code": "002122",
+      "name": "ST汇洲",
+      "market": 0
+    },
+    {
+      "code": "002168",
+      "name": "ST惠程",
+      "market": 0
+    },
+    {
+      "code": "002193",
+      "name": "ST如意",
+      "market": 0
+    },
+    {
+      "code": "002198",
+      "name": "ST嘉应",
+      "market": 0
+    },
+    {
+      "code": "002211",
+      "name": "ST宏达",
+      "market": 0
+    },
+    {
+      "code": "002217",
+      "name": "ST合力泰",
+      "market": 0
+    },
+    {
+      "code": "002306",
+      "name": "ST云网",
+      "market": 0
+    },
+    {
+      "code": "002360",
+      "name": "ST同德",
+      "market": 0
+    },
+    {
+      "code": "002424",
+      "name": "ST百灵",
+      "market": 0
+    },
+    {
+      "code": "002431",
+      "name": "ST棕榈",
+      "market": 0
+    },
+    {
+      "code": "002485",
+      "name": "ST雪发",
+      "market": 0
+    },
+    {
+      "code": "002512",
+      "name": "ST达华",
+      "market": 0
+    },
+    {
+      "code": "002538",
+      "name": "ST司特",
+      "market": 0
+    },
+    {
+      "code": "002592",
+      "name": "ST八菱",
+      "market": 0
+    },
+    {
+      "code": "002598",
+      "name": "ST章鼓",
+      "market": 0
+    },
+    {
+      "code": "002650",
+      "name": "ST加加",
+      "market": 0
+    },
+    {
+      "code": "002689",
+      "name": "ST远智",
+      "market": 0
+    },
+    {
+      "code": "002719",
+      "name": "ST麦趣",
+      "market": 0
+    },
+    {
+      "code": "002726",
+      "name": "ST龙大",
+      "market": 0
+    },
+    {
+      "code": "002743",
+      "name": "ST富煌",
+      "market": 0
+    },
+    {
+      "code": "002759",
+      "name": "ST天际",
+      "market": 0
+    },
+    {
+      "code": "002822",
+      "name": "ST中装",
+      "market": 0
+    },
+    {
+      "code": "002872",
+      "name": "ST天圣",
+      "market": 0
+    },
+    {
+      "code": "300010",
+      "name": "ST豆神",
+      "market": 0
+    },
+    {
+      "code": "300020",
+      "name": "ST银江",
+      "market": 0
+    },
+    {
+      "code": "300027",
+      "name": "ST华谊",
+      "market": 0
+    },
+    {
+      "code": "300068",
+      "name": "ST南都",
+      "market": 0
+    },
+    {
+      "code": "300081",
+      "name": "ST恒信",
+      "market": 0
+    },
+    {
+      "code": "300087",
+      "name": "ST荃银",
+      "market": 0
+    },
+    {
+      "code": "300123",
+      "name": "ST亚光",
+      "market": 0
+    },
+    {
+      "code": "300167",
+      "name": "ST迪威迅",
+      "market": 0
+    },
+    {
+      "code": "300173",
+      "name": "ST福能",
+      "market": 0
+    },
+    {
+      "code": "300237",
+      "name": "ST美晨",
+      "market": 0
+    },
+    {
+      "code": "300245",
+      "name": "ST天玑",
+      "market": 0
+    },
+    {
+      "code": "300290",
+      "name": "ST荣科",
+      "market": 0
+    },
+    {
+      "code": "300301",
+      "name": "ST长方",
+      "market": 0
+    },
+    {
+      "code": "300326",
+      "name": "ST凯利",
+      "market": 0
+    },
+    {
+      "code": "300352",
+      "name": "ST信源",
+      "market": 0
+    },
+    {
+      "code": "300366",
+      "name": "ST创意",
+      "market": 0
+    },
+    {
+      "code": "300385",
+      "name": "ST雪浪",
+      "market": 0
+    },
+    {
+      "code": "300396",
+      "name": "ST迪瑞",
+      "market": 0
+    },
+    {
+      "code": "300419",
+      "name": "ST浩丰",
+      "market": 0
+    },
+    {
+      "code": "300460",
+      "name": "ST惠伦",
+      "market": 0
+    },
+    {
+      "code": "300462",
+      "name": "ST华铭",
+      "market": 0
+    },
+    {
+      "code": "300472",
+      "name": "ST新元",
+      "market": 0
+    },
+    {
+      "code": "300477",
+      "name": "ST合纵",
+      "market": 0
+    },
+    {
+      "code": "300555",
+      "name": "ST路通",
+      "market": 0
+    },
+    {
+      "code": "300594",
+      "name": "ST朗进",
+      "market": 0
+    },
+    {
+      "code": "300831",
+      "name": "ST派瑞",
+      "market": 0
+    },
+    {
+      "code": "301117",
+      "name": "ST佳缘",
+      "market": 0
+    },
+    {
+      "code": "600079",
+      "name": "ST人福",
+      "market": 1
+    },
+    {
+      "code": "600080",
+      "name": "ST金花",
+      "market": 1
+    },
+    {
+      "code": "600082",
+      "name": "ST海泰",
+      "market": 1
+    },
+    {
+      "code": "600136",
+      "name": "ST明诚",
+      "market": 1
+    },
+    {
+      "code": "600169",
+      "name": "ST太重",
+      "market": 1
+    },
+    {
+      "code": "600238",
+      "name": "ST椰岛",
+      "market": 1
+    },
+    {
+      "code": "600239",
+      "name": "ST云城",
+      "market": 1
+    },
+    {
+      "code": "600289",
+      "name": "ST信通",
+      "market": 1
+    },
+    {
+      "code": "600302",
+      "name": "ST标准",
+      "market": 1
+    },
+    {
+      "code": "600337",
+      "name": "ST美克",
+      "market": 1
+    },
+    {
+      "code": "600363",
+      "name": "ST联光",
+      "market": 1
+    },
+    {
+      "code": "600365",
+      "name": "ST通葡",
+      "market": 1
+    },
+    {
+      "code": "600439",
+      "name": "ST瑞贝卡",
+      "market": 1
+    },
+    {
+      "code": "600491",
+      "name": "ST龙元",
+      "market": 1
+    },
+    {
+      "code": "600530",
+      "name": "ST交昂",
+      "market": 1
+    },
+    {
+      "code": "600568",
+      "name": "ST中珠",
+      "market": 1
+    },
+    {
+      "code": "600624",
+      "name": "ST复华",
+      "market": 1
+    },
+    {
+      "code": "600678",
+      "name": "ST金顶",
+      "market": 1
+    },
+    {
+      "code": "600735",
+      "name": "ST新华锦",
+      "market": 1
+    },
+    {
+      "code": "600753",
+      "name": "ST海钦",
+      "market": 1
+    },
+    {
+      "code": "600759",
+      "name": "ST洲际",
+      "market": 1
+    },
+    {
+      "code": "600818",
+      "name": "ST中路",
+      "market": 1
+    },
+    {
+      "code": "601010",
+      "name": "ST文峰",
+      "market": 1
+    },
+    {
+      "code": "601718",
+      "name": "ST际华",
+      "market": 1
+    },
+    {
+      "code": "603008",
+      "name": "ST喜临门",
+      "market": 1
+    },
+    {
+      "code": "603377",
+      "name": "ST东时",
+      "market": 1
+    },
+    {
+      "code": "603517",
+      "name": "ST绝味",
+      "market": 1
+    },
+    {
+      "code": "603595",
+      "name": "ST东尼",
+      "market": 1
+    },
+    {
+      "code": "603729",
+      "name": "ST龙韵",
+      "market": 1
+    },
+    {
+      "code": "603789",
+      "name": "ST星农",
+      "market": 1
+    },
+    {
+      "code": "603822",
+      "name": "ST嘉澳",
+      "market": 1
+    },
+    {
+      "code": "603825",
+      "name": "ST华扬",
+      "market": 1
+    },
+    {
+      "code": "603869",
+      "name": "ST智知",
+      "market": 1
+    },
+    {
+      "code": "603922",
+      "name": "ST金鸿顺",
+      "market": 1
+    },
+    {
+      "code": "603959",
+      "name": "ST百利",
+      "market": 1
+    },
+    {
+      "code": "605199",
+      "name": "ST葫芦娃",
+      "market": 1
+    },
+    {
+      "code": "688022",
+      "name": "ST瀚川",
+      "market": 1
+    },
+    {
+      "code": "688053",
+      "name": "ST思科瑞",
+      "market": 1
+    },
+    {
+      "code": "688076",
+      "name": "ST诺泰",
+      "market": 1
+    },
+    {
+      "code": "688089",
+      "name": "ST嘉必优",
+      "market": 1
+    },
+    {
+      "code": "688184",
+      "name": "ST帕瓦",
+      "market": 1
+    },
+    {
+      "code": "688189",
+      "name": "ST南新",
+      "market": 1
+    },
+    {
+      "code": "688201",
+      "name": "ST信安",
+      "market": 1
+    },
+    {
+      "code": "688270",
+      "name": "ST臻镭",
+      "market": 1
+    }
+  ]
+}

@@ -206,7 +206,7 @@ AI 先调用 `list_market_instruments(asset_type="etf", page=1, page_size=100)`�
 每个工具都公开 JSON Schema；服务端会校验必填字段、未知字段、基础类型、枚举值和数值范围。调用结果统一为 `{data, meta, warnings, error}`：先检查 `error`，再保留 `warnings`，并以 `meta` 和数据自身的截止日期判断新鲜度。工具不会承诺持续监控、推送通知或确定性买卖结论。
 
 
-附带 **13 个 Agent Skill**（由 `stock-analysis install` 自动安装），教授 AI 如何组合使用这些工具完成复杂选股和报告工作流：
+附带 **14 个 Agent Skill**（由 `stock-analysis install` 自动安装），教授 AI 如何组合使用这些工具完成复杂选股和报告工作流：
 
 | Skill | 用途 |
 |-------|------|
@@ -219,6 +219,23 @@ AI 先调用 `list_market_instruments(asset_type="etf", page=1, page_size=100)`�
 | `stock-analysis-chart-trend` | K线图结构归因与趋势线分析 |
 | `stock-analysis-rising-patterns` | 20只上涨形态候选逐股月周日深度分析 |
 | [a-share-dividends](skills/a-share-dividends/SKILL.md) | 历史、最新及已公告的未来分红，核验日期、来源与覆盖范围 |
+| [stock-analysis-st-removal](skills/stock-analysis-st-removal/SKILL.md) | 普通ST未来摘帽研究：全量名单、戴帽原因与日期、条件落实及可能窗口；申请前证据分析 |
+
+### 普通ST未来摘帽研究
+
+[stock-analysis-st-removal](skills/stock-analysis-st-removal/SKILL.md) 按实际戴帽原因匹配四个板块的撤销规则，逐家列出本轮ST时间、有效原因、条件证据、申请依据、剩余障碍与可能窗口。申请前、已申请待审核、已获准待生效/已生效分开；亏损是独立经营风险，不把“必须盈利”套给全部ST。连续亏损并持续经营不确定性类，保留规则中的年度利润达标**或者**持续经营不确定性消除路径。
+
+[109家公司研究示例（2026-10-18）](examples/st-removal/2026-10-18/README.md) 包含HTML、CSV、JSON及规则说明。示例中ST绝味已公开撤销决定、10月20日生效；不是仍在等待审核。HTML支持窗口/证据排序、状态和盈亏筛选，ST时间与原因直接可见。快照用于展示方法，不是实时推荐或历史回测数据。
+
+```powershell
+python -X utf8 skills/stock-analysis-st-removal/scripts/st_research_collect.py --output <新报告目录> --as-of YYYY-MM-DD
+# 逐家核对原文，填写 reviewed_notes.json 后渲染
+python -X utf8 skills/stock-analysis-st-removal/scripts/st_research_report.py <报告目录> --as-of YYYY-MM-DD --overrides <报告目录>/reviewed_notes.json
+# 更新已有归档：--since 与上次核查留重叠区间，随后重新复核并渲染
+python -X utf8 skills/stock-analysis-st-removal/scripts/st_research_refresh.py <报告目录> --project . --as-of YYYY-MM-DD --since YYYY-MM-DD
+```
+
+[原因与撤销规则](skills/stock-analysis-st-removal/references/removal-rules-2026.md) 保存官方来源、板块条款及日期口径。程序按实际公开时间纳入公告，正式公告日另存，避免漏掉当天已公开而落款下一交易日的决定。这是Skill工作流及辅助脚本，不增加注册MCP工具。
 
 ### A 股分红查询
 
@@ -244,6 +261,7 @@ python -X utf8 skills/a-share-dividends/scripts/fetch_dividends.py --symbol 0000
 | `stock-analysis-chart-trend` | K 线看图卡 | 截止日期、枢轴点、趋势线/通道/箱体/W-M/斐波那契区域、程序与图表是否一致、量能证据 |
 | `stock-analysis-rising-patterns` | 候选卡片 + 对比表 | 每只返回股票一张证据卡、复核后排序、当前候选与历史样本共性、覆盖率限制 |
 | `stock-analysis-strategy-backtest` | 回测结果包 | 股票池/区间、覆盖率、信号与交易数、假设、事件和组合指标、训练/测试与年度稳定性、报告/CSV 路径 |
+| `stock-analysis-st-removal` | 按原因匹配的摘帽预期表 | ST时间与原因、板块规则、撤销依据、剩余障碍、事件状态、盈亏风险、来源与更新时间 |
 
 示例结果卡片：
 

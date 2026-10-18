@@ -1,0 +1,771 @@
+{
+  "as_of": "2026-10-18",
+  "checked_at": "2026-10-18T22:45:02.362877+08:00",
+  "companies": [
+    {
+      "code": "000078",
+      "name": "ST海王",
+      "errors": [],
+      "documents": 20,
+      "checked_at": "2026-10-18T22:46:04.698856+08:00"
+    },
+    {
+      "code": "000488",
+      "name": "ST晨鸣",
+      "errors": [],
+      "documents": 11,
+      "checked_at": "2026-10-18T22:46:04.692619+08:00"
+    },
+    {
+      "code": "000632",
+      "name": "ST三木",
+      "errors": [],
+      "documents": 9,
+      "checked_at": "2026-10-18T22:46:04.702074+08:00"
+    },
+    {
+      "code": "000639",
+      "name": "ST西王",
+      "errors": [],
+      "documents": 13,
+      "checked_at": "2026-10-18T22:46:04.697856+08:00"
+    },
+    {
+      "code": "000669",
+      "name": "ST金鸿",
+      "errors": [],
+      "documents": 18,
+      "checked_at": "2026-10-18T22:46:04.711291+08:00"
+    },
+    {
+      "code": "000677",
+      "name": "ST海龙",
+      "errors": [],
+      "documents": 14,
+      "checked_at": "2026-10-18T22:46:04.727043+08:00"
+    },
+    {
+      "code": "000698",
+      "name": "ST沈化",
+      "errors": [],
+      "documents": 17,
+      "checked_at": "2026-10-18T22:46:04.719341+08:00"
+    },
+    {
+      "code": "000793",
+      "name": "ST华闻",
+      "errors": [],
+      "documents": 18,
+      "checked_at": "2026-10-18T22:46:04.723880+08:00"
+    },
+    {
+      "code": "000821",
+      "name": "ST京机",
+      "errors": [],
+      "documents": 11,
+      "checked_at": "2026-10-18T22:46:04.732158+08:00"
+    },
+    {
+      "code": "000903",
+      "name": "ST云动",
+      "errors": [],
+      "documents": 16,
+      "checked_at": "2026-10-18T22:46:04.732158+08:00"
+    },
+    {
+      "code": "002024",
+      "name": "ST易购",
+      "errors": [],
+      "documents": 12,
+      "checked_at": "2026-10-18T22:46:04.752369+08:00"
+    },
+    {
+      "code": "002055",
+      "name": "ST得润",
+      "errors": [],
+      "documents": 19,
+      "checked_at": "2026-10-18T22:46:04.742196+08:00"
+    },
+    {
+      "code": "002082",
+      "name": "ST万邦",
+      "errors": [],
+      "documents": 16,
+      "checked_at": "2026-10-18T22:46:04.765395+08:00"
+    },
+    {
+      "code": "002102",
+      "name": "ST能特",
+      "errors": [],
+      "documents": 20,
+      "checked_at": "2026-10-18T22:46:04.768675+08:00"
+    },
+    {
+      "code": "002109",
+      "name": "ST兴化",
+      "errors": [],
+      "documents": 16,
+      "checked_at": "2026-10-18T22:46:04.777666+08:00"
+    },
+    {
+      "code": "002122",
+      "name": "ST汇洲",
+      "errors": [],
+      "documents": 23,
+      "checked_at": "2026-10-18T22:46:04.773666+08:00"
+    },
+    {
+      "code": "002168",
+      "name": "ST惠程",
+      "errors": [],
+      "documents": 18,
+      "checked_at": "2026-10-18T22:46:04.787666+08:00"
+    },
+    {
+      "code": "002193",
+      "name": "ST如意",
+      "errors": [],
+      "documents": 13,
+      "checked_at": "2026-10-18T22:46:04.793645+08:00"
+    },
+    {
+      "code": "002198",
+      "name": "ST嘉应",
+      "errors": [],
+      "documents": 16,
+      "checked_at": "2026-10-18T22:46:04.798680+08:00"
+    },
+    {
+      "code": "002211",
+      "name": "ST宏达",
+      "errors": [],
+      "documents": 19,
+      "checked_at": "2026-10-18T22:46:04.798680+08:00"
+    },
+    {
+      "code": "002217",
+      "name": "ST合力泰",
+      "errors": [],
+      "documents": 21,
+      "checked_at": "2026-10-18T22:46:04.812349+08:00"
+    },
+    {
+      "code": "002306",
+      "name": "ST云网",
+      "errors": [],
+      "documents": 19,
+      "checked_at": "2026-10-18T22:46:04.815695+08:00"
+    },
+    {
+      "code": "002360",
+      "name": "ST同德",
+      "errors": [],
+      "documents": 20,
+      "checked_at": "2026-10-18T22:46:04.827945+08:00"
+    },
+    {
+      "code": "002424",
+      "name": "ST百灵",
+      "errors": [],
+      "documents": 20,
+      "checked_at": "2026-10-18T22:46:04.832123+08:00"
+    },
+    {
+      "code": "002431",
+      "name": "ST棕榈",
+      "errors": [],
+      "documents": 15,
+      "checked_at": "2026-10-18T22:46:04.840547+08:00"
+    },
+    {
+      "code": "002485",
+      "name": "ST雪发",
+      "errors": [],
+      "documents": 21,
+      "checked_at": "2026-10-18T22:46:04.832123+08:00"
+    },
+    {
+      "code": "002512",
+      "name": "ST达华",
+      "errors": [],
+      "documents": 16,
+      "checked_at": "2026-10-18T22:46:04.842305+08:00"
+    },
+    {
+      "code": "002538",
+      "name": "ST司特",
+      "errors": [],
+      "documents": 17,
+      "checked_at": "2026-10-18T22:46:04.858272+08:00"
+    },
+    {
+      "code": "002592",
+      "name": "ST八菱",
+      "errors": [],
+      "documents": 23,
+      "checked_at": "2026-10-18T22:46:04.865470+08:00"
+    },
+    {
+      "code": "002598",
+      "name": "ST章鼓",
+      "errors": [],
+      "documents": 16,
+      "checked_at": "2026-10-18T22:46:04.865470+08:00"
+    },
+    {
+      "code": "002650",
+      "name": "ST加加",
+      "errors": [],
+      "documents": 23,
+      "checked_at": "2026-10-18T22:46:04.875689+08:00"
+    },
+    {
+      "code": "002689",
+      "name": "ST远智",
+      "errors": [],
+      "documents": 15,
+      "checked_at": "2026-10-18T22:46:04.880978+08:00"
+    },
+    {
+      "code": "002719",
+      "name": "ST麦趣",
+      "errors": [],
+      "documents": 14,
+      "checked_at": "2026-10-18T22:46:04.886020+08:00"
+    },
+    {
+      "code": "002726",
+      "name": "ST龙大",
+      "errors": [],
+      "documents": 20,
+      "checked_at": "2026-10-18T22:46:04.898811+08:00"
+    },
+    {
+      "code": "002743",
+      "name": "ST富煌",
+      "errors": [],
+      "documents": 10,
+      "checked_at": "2026-10-18T22:46:04.908820+08:00"
+    },
+    {
+      "code": "002759",
+      "name": "ST天际",
+      "errors": [],
+      "documents": 15,
+      "checked_at": "2026-10-18T22:46:04.898811+08:00"
+    },
+    {
+      "code": "002822",
+      "name": "ST中装",
+      "errors": [],
+      "documents": 20,
+      "checked_at": "2026-10-18T22:46:04.908820+08:00"
+    },
+    {
+      "code": "002872",
+      "name": "ST天圣",
+      "errors": [],
+      "documents": 21,
+      "checked_at": "2026-10-18T22:46:04.929135+08:00"
+    },
+    {
+      "code": "300010",
+      "name": "ST豆神",
+      "errors": [],
+      "documents": 22,
+      "checked_at": "2026-10-18T22:46:04.942410+08:00"
+    },
+    {
+      "code": "300020",
+      "name": "ST银江",
+      "errors": [],
+      "documents": 23,
+      "checked_at": "2026-10-18T22:46:04.938122+08:00"
+    },
+    {
+      "code": "300027",
+      "name": "ST华谊",
+      "errors": [],
+      "documents": 17,
+      "checked_at": "2026-10-18T22:46:04.932141+08:00"
+    },
+    {
+      "code": "300068",
+      "name": "ST南都",
+      "errors": [],
+      "documents": 14,
+      "checked_at": "2026-10-18T22:46:04.952432+08:00"
+    },
+    {
+      "code": "300081",
+      "name": "ST恒信",
+      "errors": [],
+      "documents": 19,
+      "checked_at": "2026-10-18T22:46:04.964094+08:00"
+    },
+    {
+      "code": "300087",
+      "name": "ST荃银",
+      "errors": [],
+      "documents": 14,
+      "checked_at": "2026-10-18T22:46:04.975218+08:00"
+    },
+    {
+      "code": "300123",
+      "name": "ST亚光",
+      "errors": [],
+      "documents": 13,
+      "checked_at": "2026-10-18T22:46:04.965536+08:00"
+    },
+    {
+      "code": "300167",
+      "name": "ST迪威迅",
+      "errors": [],
+      "documents": 16,
+      "checked_at": "2026-10-18T22:46:04.977863+08:00"
+    },
+    {
+      "code": "300173",
+      "name": "ST福能",
+      "errors": [],
+      "documents": 17,
+      "checked_at": "2026-10-18T22:46:04.993864+08:00"
+    },
+    {
+      "code": "300237",
+      "name": "ST美晨",
+      "errors": [],
+      "documents": 17,
+      "checked_at": "2026-10-18T22:46:04.996862+08:00"
+    },
+    {
+      "code": "300245",
+      "name": "ST天玑",
+      "errors": [],
+      "documents": 19,
+      "checked_at": "2026-10-18T22:46:05.002863+08:00"
+    },
+    {
+      "code": "300290",
+      "name": "ST荣科",
+      "errors": [],
+      "documents": 19,
+      "checked_at": "2026-10-18T22:46:05.005863+08:00"
+    },
+    {
+      "code": "300301",
+      "name": "ST长方",
+      "errors": [],
+      "documents": 25,
+      "checked_at": "2026-10-18T22:46:05.020906+08:00"
+    },
+    {
+      "code": "300326",
+      "name": "ST凯利",
+      "errors": [],
+      "documents": 19,
+      "checked_at": "2026-10-18T22:46:05.040581+08:00"
+    },
+    {
+      "code": "300352",
+      "name": "ST信源",
+      "errors": [],
+      "documents": 16,
+      "checked_at": "2026-10-18T22:46:05.032170+08:00"
+    },
+    {
+      "code": "300366",
+      "name": "ST创意",
+      "errors": [],
+      "documents": 17,
+      "checked_at": "2026-10-18T22:46:05.026943+08:00"
+    },
+    {
+      "code": "300385",
+      "name": "ST雪浪",
+      "errors": [],
+      "documents": 7,
+      "checked_at": "2026-10-18T22:46:05.045796+08:00"
+    },
+    {
+      "code": "300396",
+      "name": "ST迪瑞",
+      "errors": [],
+      "documents": 17,
+      "checked_at": "2026-10-18T22:46:05.048802+08:00"
+    },
+    {
+      "code": "300419",
+      "name": "ST浩丰",
+      "errors": [],
+      "documents": 18,
+      "checked_at": "2026-10-18T22:46:05.058327+08:00"
+    },
+    {
+      "code": "300460",
+      "name": "ST惠伦",
+      "errors": [],
+      "documents": 19,
+      "checked_at": "2026-10-18T22:46:05.063493+08:00"
+    },
+    {
+      "code": "300462",
+      "name": "ST华铭",
+      "errors": [],
+      "documents": 19,
+      "checked_at": "2026-10-18T22:46:05.072830+08:00"
+    },
+    {
+      "code": "300472",
+      "name": "ST新元",
+      "errors": [],
+      "documents": 20,
+      "checked_at": "2026-10-18T22:46:05.083308+08:00"
+    },
+    {
+      "code": "300477",
+      "name": "ST合纵",
+      "errors": [],
+      "documents": 20,
+      "checked_at": "2026-10-18T22:46:05.086307+08:00"
+    },
+    {
+      "code": "300555",
+      "name": "ST路通",
+      "errors": [],
+      "documents": 22,
+      "checked_at": "2026-10-18T22:46:05.094947+08:00"
+    },
+    {
+      "code": "300594",
+      "name": "ST朗进",
+      "errors": [],
+      "documents": 16,
+      "checked_at": "2026-10-18T22:46:05.101007+08:00"
+    },
+    {
+      "code": "300831",
+      "name": "ST派瑞",
+      "errors": [],
+      "documents": 11,
+      "checked_at": "2026-10-18T22:46:05.110370+08:00"
+    },
+    {
+      "code": "301117",
+      "name": "ST佳缘",
+      "errors": [],
+      "documents": 13,
+      "checked_at": "2026-10-18T22:46:05.124452+08:00"
+    },
+    {
+      "code": "600079",
+      "name": "ST人福",
+      "errors": [],
+      "documents": 18,
+      "checked_at": "2026-10-18T22:46:05.119448+08:00"
+    },
+    {
+      "code": "600080",
+      "name": "ST金花",
+      "errors": [],
+      "documents": 19,
+      "checked_at": "2026-10-18T22:46:05.132172+08:00"
+    },
+    {
+      "code": "600082",
+      "name": "ST海泰",
+      "errors": [],
+      "documents": 11,
+      "checked_at": "2026-10-18T22:46:05.131457+08:00"
+    },
+    {
+      "code": "600136",
+      "name": "ST明诚",
+      "errors": [],
+      "documents": 22,
+      "checked_at": "2026-10-18T22:46:05.146764+08:00"
+    },
+    {
+      "code": "600169",
+      "name": "ST太重",
+      "errors": [],
+      "documents": 14,
+      "checked_at": "2026-10-18T22:46:05.143477+08:00"
+    },
+    {
+      "code": "600238",
+      "name": "ST椰岛",
+      "errors": [],
+      "documents": 20,
+      "checked_at": "2026-10-18T22:46:05.169662+08:00"
+    },
+    {
+      "code": "600239",
+      "name": "ST云城",
+      "errors": [],
+      "documents": 20,
+      "checked_at": "2026-10-18T22:46:05.161635+08:00"
+    },
+    {
+      "code": "600289",
+      "name": "ST信通",
+      "errors": [],
+      "documents": 23,
+      "checked_at": "2026-10-18T22:46:05.172778+08:00"
+    },
+    {
+      "code": "600302",
+      "name": "ST标准",
+      "errors": [],
+      "documents": 16,
+      "checked_at": "2026-10-18T22:46:05.173788+08:00"
+    },
+    {
+      "code": "600337",
+      "name": "ST美克",
+      "errors": [],
+      "documents": 10,
+      "checked_at": "2026-10-18T22:46:05.190527+08:00"
+    },
+    {
+      "code": "600363",
+      "name": "ST联光",
+      "errors": [],
+      "documents": 12,
+      "checked_at": "2026-10-18T22:46:05.194667+08:00"
+    },
+    {
+      "code": "600365",
+      "name": "ST通葡",
+      "errors": [],
+      "documents": 22,
+      "checked_at": "2026-10-18T22:46:05.198843+08:00"
+    },
+    {
+      "code": "600439",
+      "name": "ST瑞贝卡",
+      "errors": [],
+      "documents": 16,
+      "checked_at": "2026-10-18T22:46:05.200713+08:00"
+    },
+    {
+      "code": "600491",
+      "name": "ST龙元",
+      "errors": [],
+      "documents": 9,
+      "checked_at": "2026-10-18T22:46:05.214446+08:00"
+    },
+    {
+      "code": "600530",
+      "name": "ST交昂",
+      "errors": [],
+      "documents": 20,
+      "checked_at": "2026-10-18T22:46:05.215446+08:00"
+    },
+    {
+      "code": "600568",
+      "name": "ST中珠",
+      "errors": [],
+      "documents": 22,
+      "checked_at": "2026-10-18T22:46:05.227003+08:00"
+    },
+    {
+      "code": "600624",
+      "name": "ST复华",
+      "errors": [],
+      "documents": 20,
+      "checked_at": "2026-10-18T22:46:05.223882+08:00"
+    },
+    {
+      "code": "600678",
+      "name": "ST金顶",
+      "errors": [],
+      "documents": 12,
+      "checked_at": "2026-10-18T22:46:05.251975+08:00"
+    },
+    {
+      "code": "600735",
+      "name": "ST新华锦",
+      "errors": [],
+      "documents": 21,
+      "checked_at": "2026-10-18T22:46:05.240002+08:00"
+    },
+    {
+      "code": "600753",
+      "name": "ST海钦",
+      "errors": [],
+      "documents": 22,
+      "checked_at": "2026-10-18T22:46:05.253482+08:00"
+    },
+    {
+      "code": "600759",
+      "name": "ST洲际",
+      "errors": [],
+      "documents": 21,
+      "checked_at": "2026-10-18T22:46:05.243665+08:00"
+    },
+    {
+      "code": "600818",
+      "name": "ST中路",
+      "errors": [],
+      "documents": 16,
+      "checked_at": "2026-10-18T22:46:05.272755+08:00"
+    },
+    {
+      "code": "601010",
+      "name": "ST文峰",
+      "errors": [],
+      "documents": 16,
+      "checked_at": "2026-10-18T22:46:05.273774+08:00"
+    },
+    {
+      "code": "601718",
+      "name": "ST际华",
+      "errors": [],
+      "documents": 11,
+      "checked_at": "2026-10-18T22:46:05.273774+08:00"
+    },
+    {
+      "code": "603008",
+      "name": "ST喜临门",
+      "errors": [],
+      "documents": 18,
+      "checked_at": "2026-10-18T22:46:05.269622+08:00"
+    },
+    {
+      "code": "603377",
+      "name": "ST东时",
+      "errors": [],
+      "documents": 22,
+      "checked_at": "2026-10-18T22:46:05.295801+08:00"
+    },
+    {
+      "code": "603517",
+      "name": "ST绝味",
+      "errors": [],
+      "documents": 15,
+      "checked_at": "2026-10-18T22:46:05.398751+08:00"
+    },
+    {
+      "code": "603595",
+      "name": "ST东尼",
+      "errors": [],
+      "documents": 14,
+      "checked_at": "2026-10-18T22:46:05.298779+08:00"
+    },
+    {
+      "code": "603729",
+      "name": "ST龙韵",
+      "errors": [],
+      "documents": 14,
+      "checked_at": "2026-10-18T22:46:05.293531+08:00"
+    },
+    {
+      "code": "603789",
+      "name": "ST星农",
+      "errors": [],
+      "documents": 20,
+      "checked_at": "2026-10-18T22:46:05.314391+08:00"
+    },
+    {
+      "code": "603822",
+      "name": "ST嘉澳",
+      "errors": [],
+      "documents": 16,
+      "checked_at": "2026-10-18T22:46:05.316580+08:00"
+    },
+    {
+      "code": "603825",
+      "name": "ST华扬",
+      "errors": [],
+      "documents": 17,
+      "checked_at": "2026-10-18T22:46:05.319580+08:00"
+    },
+    {
+      "code": "603869",
+      "name": "ST智知",
+      "errors": [],
+      "documents": 18,
+      "checked_at": "2026-10-18T22:46:05.334252+08:00"
+    },
+    {
+      "code": "603922",
+      "name": "ST金鸿顺",
+      "errors": [],
+      "documents": 16,
+      "checked_at": "2026-10-18T22:46:05.342599+08:00"
+    },
+    {
+      "code": "603959",
+      "name": "ST百利",
+      "errors": [],
+      "documents": 22,
+      "checked_at": "2026-10-18T22:46:05.336231+08:00"
+    },
+    {
+      "code": "605199",
+      "name": "ST葫芦娃",
+      "errors": [],
+      "documents": 21,
+      "checked_at": "2026-10-18T22:46:05.353087+08:00"
+    },
+    {
+      "code": "688022",
+      "name": "ST瀚川",
+      "errors": [],
+      "documents": 19,
+      "checked_at": "2026-10-18T22:46:05.357278+08:00"
+    },
+    {
+      "code": "688053",
+      "name": "ST思科瑞",
+      "errors": [],
+      "documents": 12,
+      "checked_at": "2026-10-18T22:46:05.361649+08:00"
+    },
+    {
+      "code": "688076",
+      "name": "ST诺泰",
+      "errors": [],
+      "documents": 16,
+      "checked_at": "2026-10-18T22:46:05.372830+08:00"
+    },
+    {
+      "code": "688089",
+      "name": "ST嘉必优",
+      "errors": [],
+      "documents": 9,
+      "checked_at": "2026-10-18T22:46:05.376050+08:00"
+    },
+    {
+      "code": "688184",
+      "name": "ST帕瓦",
+      "errors": [],
+      "documents": 19,
+      "checked_at": "2026-10-18T22:46:05.378057+08:00"
+    },
+    {
+      "code": "688189",
+      "name": "ST南新",
+      "errors": [],
+      "documents": 16,
+      "checked_at": "2026-10-18T22:46:05.388345+08:00"
+    },
+    {
+      "code": "688201",
+      "name": "ST信安",
+      "errors": [],
+      "documents": 13,
+      "checked_at": "2026-10-18T22:46:05.393636+08:00"
+    },
+    {
+      "code": "688270",
+      "name": "ST臻镭",
+      "errors": [],
+      "documents": 11,
+      "checked_at": "2026-10-18T22:46:05.396752+08:00"
+    }
+  ],
+  "raw_archive": "refresh\\20261018_224311",
+  "publication_time_filter": "display_time优先，notice_date另存，2026-10-18当日已公开而落款10-19的公告纳入"
+}

@@ -1,0 +1,17 @@
+{
+  "as_of": "2026-10-18",
+  "normalization": "UTF-8 text; normalize CRLF to LF before SHA-256",
+  "sha256": {
+    "application-evidence.json": "404b5b03cc3b62452b6f989de8bcd646504ff857c45f04bd910f4688cde57f70",
+    "freshness.json": "8b0e1a6472a2a150ec3cacb757bea83d8a039011506f0bd330361192d0a73b94",
+    "README.md": "dc60b235982f394cfdbf7f8198bc307eec36b4f76107d6609fcb983235f28b94",
+    "research.json": "e098703ee4ac60c8238044263ec3faa9bb2f75bb77a98b9e17d6e15c33a58e6e",
+    "reviewed_notes.json": "326b4d356b280093aee8a95bd231d9f359fce0b102b927887a3e2d7ebc91efff",
+    "ST摘帽预期研究报告.html": "ab914ebd81194f13e28f1f69c4ee280ddfc467b11e8ab305cd472d53f5495859",
+    "ST摘帽预期研究报告.md": "df7cd5b1b0337cefa6b79a47a34161317514add07dbc92eae8f7c606a123d0d7",
+    "ST摘帽预期研究表.csv": "0ec818e27710ef03434d3c9f82b3482daa7131f8d23eddccb8434418b9db45f7",
+    "universe_current.json": "3d6a6857729af97987583777ad65e2480d0c61842b50de0f2f568e9bad882168",
+    "研究结论与阅读指南.md": "0fbece99dd5315211b7380f4b60a5c602fcd2f69026aca4eb3f1a6a7ea6bb12e",
+    "规则与研究方法说明.md": "e14c115dd02be59b8c3b2b54276f4017346120e978ca0a4535043a2c3f1131eb"
+  }
+}

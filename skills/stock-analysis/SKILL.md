@@ -21,6 +21,7 @@ Call `get_data_status` before market-wide work or when freshness matters.
 | Request | Skill | Primary tools |
 |---|---|---|
 | Initialize, update, inspect, repair data | `stock-analysis-data-init` | `get_data_status`, `init_full_data`, `update_daily_data`, `sync_stock_kline_universe` |
+| Ordinary-ST future removal, causes, conditions and application status | `stock-analysis-st-removal` | Skill collection/refresh/report helpers; see its cause-specific rule references |
 | General factor/sector/name screening | `stock-analysis-stock-screening` | `screen_stocks`, `get_sector_list`, `scan_patterns` |
 | Find rising structures and deeply review 20 stocks | `stock-analysis-rising-patterns` | `screen_rising_candidates`, `prepare_stock_analysis` |
 | Analyze one stock | `stock-analysis-report-generation` | `prepare_stock_analysis`, `generate_stock_report`, `get_key_levels` |
@@ -34,6 +35,8 @@ Call `get_data_status` before market-wide work or when freshness matters.
 | Index, ETF/LOF, fund NAV, convertible and exchange bond queries | This router; see `docs/multi-asset-data.md` | `list_market_instruments`, `get_market_quote`, `get_market_kline`, `get_fund_nav`, `get_convertible_bond_info` |
 
 Multi-asset requests do not require stock initialization. Start with `list_market_instruments` for the requested asset_type and preserve the returned market/type/code identity. Exchange instruments require an explicit market or prefix: never apply A-share prefix guessing to ETFs, indices or bonds. Fund directory entries use otc for NAV identity and may include listed funds; this does not imply OTC subscription eligibility. Keep NAV separate from OHLC prices, IOPV separate from published NAV, and conversion triggers separate from redemption announcements. Preserve paging, stale/offline warnings and quote dates. New assets are queried on demand in namespaced JSON caches, not included in stock screening, chart rendering, pattern scans or trading backtests. Bond coverage is SH/SZ exchange quotes only, may include convertibles, and has no interbank/yield/ratings coverage.
+
+ST-removal requests also do not require K-line initialization. Route them to the specialized Skill, refresh publication-time evidence, and separate cause-specific legal conditions from profit/loss investment filters.
 
 News/financial requests do not require stock-history initialization. Respect offline=true when downloads are paused. Financial providers have different statement/indicator/history capabilities; inspect the returned limits. These tools do not provide a complete web search or real-time global quotes.
 
