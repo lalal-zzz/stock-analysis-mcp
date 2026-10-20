@@ -181,6 +181,16 @@ pip install stock-analysis-mcp
 Multi-asset tools query data on demand without stock initialization. Specify the market explicitly, e.g. `sh000001` with `asset_type=index`; fund NAV `000001` has a separate identity. Data uses namespaced JSON caches and is not included in stock screening, pattern scans or backtests. Bond data covers exchange quotes, not interbank bonds or yields. See [multi-asset examples, sources and limits](docs/multi-asset-data.md).
 
 
+### Hot concept sectors: heat, price change and signed deltas
+
+Call `get_sector_hot_rank` with `{"limit":20,"offline":false}` to retrieve the THS hot concept list. It returns heat rank, heat value, percentage price change and listing tags. The endpoint currently returns 20 concepts; this is not a full-market sector ranking.
+
+Successful network fetches save observation snapshots. `heat_delta` is current heat minus the previous observed heat: positive means increased attention, negative means decreased attention. `rank_improvement` is previous rank minus current rank: positive means an improved rank. The response includes both observation timestamps. First observations and newly listed concepts have null deltas; leaving the list does not mean heat fell to zero. Cached reads do not create observations.
+
+Use `{"offline":true}` to read cached data without networking. The cache lasts five minutes; failed requests may return explicitly marked stale data. Fetch time is not the source's market timestamp, which is unavailable, so these observations must not be described as verified live or daily changes. The source's own rank-change field is preserved as `source_rank_change_raw` because its comparison period and sign convention remain unverified.
+
+THS concept codes are separate from Eastmoney `BK` codes and cannot be passed directly to Eastmoney sector tools. Capital flow is not automatically joined across providers. Whether high heat and strong price performance predict two further rising days still requires historical validation. See [snapshot storage and source limits](docs/sector-hot-rank.md).
+
 ### Search ETFs and retrieve K-lines through a Skill
 
 The `stock-analysis` Skill includes multi-asset routing. For example, ask your agent:
