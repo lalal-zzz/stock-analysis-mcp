@@ -27,6 +27,12 @@ def _build_parser() -> argparse.ArgumentParser:
         description="股票分析 MCP + Skills: 本地库重建/回填/采集/清理 + 形态扫描与回测")
     sub = p.add_subparsers(dest="command", required=True)
 
+    heat = sub.add_parser("sector-hot-1430", help="14:30至14:35交易日窗口采集与前一交易日同窗口对比")
+    heat.add_argument("--capture", action="store_true", help="窗口内直接联网采集；窗口外跳过，不回填")
+    heat.add_argument("--date", default=None, help="只读指定日期，YYYY-MM-DD")
+    heat.add_argument("--data-dir", default=None)
+    heat.add_argument("--output", default=None)
+
     def add_common(sp: argparse.ArgumentParser) -> None:
         sp.add_argument("--data-dir", default=None,
                         help="覆盖数据根目录 (等价 STOCK_ANALYSIS_DATA_DIR)")
@@ -265,6 +271,18 @@ def main(argv: list[str] | None = None) -> int:
     args, remaining = _build_parser().parse_known_args(argv)
     if getattr(args, "data_dir", None):          # 数据目录覆盖 (等价 STOCK_ANALYSIS_DATA_DIR)
         os.environ["STOCK_ANALYSIS_DATA_DIR"] = args.data_dir
+    if args.command == "sector-hot-1430":
+        if remaining or (args.capture and args.date):
+            return 2
+        from .data.sector_hot_daily import capture_sector_hot_1430, get_sector_hot_1430
+        result = capture_sector_hot_1430() if args.capture else get_sector_hot_1430(args.date)
+        if args.output:
+            from pathlib import Path
+            path = Path(args.output)
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 1 if result["status"] == "unavailable" else 0
     if args.command == "financial-download":
         if remaining:
             return 2

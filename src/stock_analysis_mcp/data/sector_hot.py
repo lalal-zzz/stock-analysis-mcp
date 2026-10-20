@@ -96,12 +96,17 @@ def _observations(records, source):
     return (previous[0], json.loads(previous[1])) if previous else (None, [])
 
 
-def get_sector_hot_rank(limit=20, offline=False):
+def get_sector_hot_rank(limit=20, offline=False, comparison="observations", trade_date=None):
     """Get the provider's bounded concept list, with signed observed deltas."""
     if isinstance(limit, bool) or not isinstance(limit, int) or not 1 <= limit <= 20:
         raise ValueError("limit must be an integer from 1 to 20")
     if not isinstance(offline, bool):
         raise ValueError("offline must be boolean")
+    if comparison == "daily_1430":
+        from .sector_hot_daily import get_sector_hot_1430
+        return get_sector_hot_1430(trade_date, limit)
+    if comparison != "observations" or trade_date is not None:
+        raise ValueError("trade_date requires comparison=daily_1430")
     records, source = _cached(CACHE_KEY, _load, offline=offline, ttl=300)
     source = {**source, "provider": "ths", "url": PLATE_URL, "page_url": PAGE_URL,
               "source_as_of": None, "freshness_verified": False}

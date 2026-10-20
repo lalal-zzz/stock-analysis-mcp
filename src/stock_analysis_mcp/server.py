@@ -205,11 +205,13 @@ async def _sectors(sector_type="concept") -> list[dict]:
     "type": "object", "properties": {
         "limit": {"type": "integer", "minimum": 1, "maximum": 20},
         "offline": {"type": "boolean", "description": "只读本地缓存，不联网"},
+        "comparison": {"type": "string", "enum": ["observations", "daily_1430"], "description": "daily_1430只读每日14:30窗口采集，与前一交易日同窗口比较"},
+        "trade_date": {"type": "string", "description": "YYYY-MM-DD，仅daily_1430模式"},
     }, "required": [],
 })
-async def _sector_hot_rank(limit=20, offline=False):
+async def _sector_hot_rank(limit=20, offline=False, comparison="observations", trade_date=None):
     from .data.sector_hot import get_sector_hot_rank
-    return await asyncio.to_thread(get_sector_hot_rank, limit, offline)
+    return await asyncio.to_thread(get_sector_hot_rank, limit, offline, comparison, trade_date)
 
 
 @register("get_stock_belong_sectors", "反查: 某只股票属于哪些板块(股票→板块)", {

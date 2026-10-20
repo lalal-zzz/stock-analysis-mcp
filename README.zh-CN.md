@@ -138,6 +138,12 @@ pip install stock-analysis-mcp
 
 ---
 
+## 每日14:30板块人气对比
+
+在北京时间14:30触发 `python -m stock_analysis_mcp.cli sector-hot-1430 --capture`，仅接收交易日14:30至14:35窗口的新获取数据，并保存实际观测时间。首次成功采集不覆盖，晚到、非交易日或失败不补造历史。命令本身不安装调度器。
+
+调用 `get_sector_hot_rank(comparison="daily_1430", trade_date="2026-10-21")` 或 CLI `sector-hot-1430 --date 2026-10-21`，只读与前一交易日同窗口的热度差值、热度变化百分比、排名改善及新入/留榜/离榜。漏采前一交易日则差值为null，不拿更早日期代替。来源行情时点未知，获取时刻不等于行情更新时刻。“高热度高涨幅延续两日”仍待历史验证，不能视为已验证套利。详见[采集与比较口径](docs/sector-hot-rank.md)。
+
 ## MCP 工具 (31 个)
 
 | 工具 | 功能 |

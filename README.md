@@ -191,6 +191,8 @@ Use `{"offline":true}` to read cached data without networking. The cache lasts f
 
 THS concept codes are separate from Eastmoney `BK` codes and cannot be passed directly to Eastmoney sector tools. Capital flow is not automatically joined across providers. Whether high heat and strong price performance predict two further rising days still requires historical validation. See [snapshot storage and source limits](docs/sector-hot-rank.md).
 
+For fixed-time research, schedule `python -m stock_analysis_mcp.cli sector-hot-1430 --capture` at 14:30 Asia/Shanghai. It accepts fresh observations only within [14:30,14:35) on verified trading days and preserves the first successful capture per day. Read with `get_sector_hot_rank(comparison="daily_1430", trade_date="2026-10-21")` or CLI `sector-hot-1430 --date 2026-10-21`. Comparisons use the exact previous trading day's capture, including signed heat changes, percentage changes and rank improvements; missing captures stay missing. The actual observation time is retained, and source freshness remains unverified. The CLI does not install a scheduler or reconstruct historical intraday lists.
+
 ### Search ETFs and retrieve K-lines through a Skill
 
 The `stock-analysis` Skill includes multi-asset routing. For example, ask your agent:
