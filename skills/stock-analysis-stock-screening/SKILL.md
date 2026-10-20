@@ -53,6 +53,7 @@ For finalist review, prefer directional position evidence in `market_structure.p
 ## Top-down workflow
 
 1. Use `get_sector_list` to identify sector direction and capital flow, while checking sector K-line freshness separately.
+   For board popularity, use `get_sector_hot_rank`. It returns THS concept heat, price change and signed differences against the previous saved fetch. `heat_delta > 0` means observed heat increased; `rank_improvement > 0` means rank improved. Source `hot_rank_chg` remains raw with an unverified comparison basis. Fetch time is not the source trading date; do not claim today's/live heat or two-day price continuation. Missing/left-list members have unknown heat, not zero. THS codes must not be passed to Eastmoney BK tools. See `docs/sector-hot-rank.md` for cache and observation semantics.
 2. Use `screen_stocks(sector_code=...)` or numeric conditions to define the universe.
 3. Use `scan_patterns(symbols=[...])` when structure is required.
 4. Check `get_stock_belong_sectors` and `get_rank_trend_data` as context, not causal proof.

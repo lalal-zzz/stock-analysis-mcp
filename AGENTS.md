@@ -3,7 +3,7 @@
 ## Architecture
 
 - **Dual-runtime**: `index.js` (Node shim, ESM) spawns `python -m stock_analysis_mcp.server` via stdio and proxies I/O. The Python server is the real MCP implementation. Python interpreter resolution: `STOCK_ANALYSIS_PYTHON` env → `~/.stock-analysis/runtime.json` (uv-managed venv) → `python`.
-- **Entrypoint**: `src/stock_analysis_mcp/server.py` — uses `mcp.server.stdio` and a `@register(name, desc, schema)` decorator to wire 30 tools to MCP handlers; every result is wrapped in a `{data, meta, warnings, error}` envelope. The dispatcher validates required/unknown fields, basic JSON types, enum values, and numeric ranges, and promotes handler warnings to the outer envelope.
+- **Entrypoint**: `src/stock_analysis_mcp/server.py` — uses `mcp.server.stdio` and a `@register(name, desc, schema)` decorator to wire 31 tools to MCP handlers; every result is wrapped in a `{data, meta, warnings, error}` envelope. The dispatcher validates required/unknown fields, basic JSON types, enum values, and numeric ranges, and promotes handler warnings to the outer envelope.
 - **Node CLI**: `bin/stock-analysis.js` + `lib/` — installer commands `install` / `setup` / `doctor` / `uninstall` / `config show`. `lib/installer.js` creates a `uv` venv under `~/.stock-analysis/runtime/` and writes `config.toml` / `runtime.json` / `install-state.json`; `lib/adapters.js` auto-configures 5 agents with backups — Claude Code (`~/.claude.json`), Codex (`~/.codex/config.toml`), Cursor (`~/.cursor/mcp.json`), VS Code Copilot (user `mcp.json`, `servers` key + `type: stdio`), Qoder (`~/.qoder/mcp.json`) — and copies the skills from root `skills/` to skill-aware agents (Claude Code / Codex / Qoder); skill ids = `skills/` directory names, discovered dynamically (no mapping table); `lib/paths.js` centralizes `~/.stock-analysis` paths.
 - **Source layout**:
   - `core/config.py` — settings resolution: env vars → `~/.stock-analysis/config.toml` → defaults (`get_settings()`)
@@ -133,7 +133,7 @@ Settings resolve as **env var → `~/.stock-analysis/config.toml` → default** 
 
 The Node shim sets `PYTHONPATH` to include `src/` automatically.
 
-## MCP tools (30 registered)
+## MCP tools (31 registered)
 
 | Tool | Module | Purpose |
 |------|--------|---------|
@@ -145,6 +145,7 @@ The Node shim sets `PYTHONPATH` to include `src/` automatically.
 | `get_stock_kline_period` | `stock_data` | Multi-period K-line (klt 1/5/15/30/60/101/102/103, network real-time) |
 | `get_rank_trend_data` | `data_manager` | Historical popularity ranking trend |
 | `get_sector_list` | `sector_data` | Concept/industry sector list with capital flow |
+| `get_sector_hot_rank` | `data/sector_hot` | THS hot concepts, heat/price change and signed deltas between archived fetch observations; source as-of unknown, THS codes separate from BK codes |
 | `get_stock_belong_sectors` | `data_manager` | Reverse lookup: stock → sectors |
 | `render_stock_charts` | `charting` | K线看图: 日/周/月K 蜡烛图 PNG (自动趋势线/颈线, chart extra) |
 | `generate_stock_report` | `analysis` | Technical report: trend / S&R / risk / position |
@@ -188,7 +189,7 @@ Unregistered library helpers used by Skills/internal code: `get_sector_members_f
 
 ## Tool registration gotcha
 
-Tools are wired via the `@register(name, desc, schema)` decorator in `server.py` — **30 tools** are registered: the original 15 plus `sync_stock_kline_universe`, `screen_rising_candidates`, `prepare_stock_analysis`, `find_cross_timeframe_similar_patterns`, `backtest_pattern_strategy`, five news/financial tools and five multi-asset tools. The pattern, research and multi-asset functions are dispatched with `asyncio.to_thread`. Keep `package.json`, README files, and Skill tool tables in sync with the registry.
+Tools are wired via the `@register(name, desc, schema)` decorator in `server.py` — **31 tools** are registered: the original 15 plus `sync_stock_kline_universe`, `screen_rising_candidates`, `prepare_stock_analysis`, `find_cross_timeframe_similar_patterns`, `backtest_pattern_strategy`, five news/financial tools, five multi-asset tools and get_sector_hot_rank. The pattern, research and multi-asset functions are dispatched with `asyncio.to_thread`. Keep `package.json`, README files, and Skill tool tables in sync with the registry.
 
 ## Skill format
 

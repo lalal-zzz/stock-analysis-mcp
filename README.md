@@ -142,7 +142,7 @@ pip install stock-analysis-mcp
 
 ---
 
-## MCP Tools (30 tools)
+## MCP Tools (31 tools)
 
 | Tool | Module | Purpose |
 |------|--------|---------|
@@ -154,6 +154,7 @@ pip install stock-analysis-mcp
 | `get_stock_kline_period` | `stock_data` | Multi-period K-line (1/5/15/30/60m, day/week/month, real-time) |
 | `get_rank_trend_data` | `data_manager` | Historical popularity ranking trend (N days) |
 | `get_sector_list` | `sector_data` | Concept/industry sector list with capital flow |
+| `get_sector_hot_rank` | `sector_hot` | THS hot concept ranking, heat, price change and signed changes between saved observations; bounded list, source as-of unknown |
 | `get_stock_belong_sectors` | `data_manager` | Reverse lookup: stock $\rightarrow$ sectors |
 | `generate_stock_report` | `analysis` | Technical report: trend / support & resistance / risk / position |
 | `render_stock_charts` | `charting` | Render daily/weekly/monthly candlestick PNGs with auto trendlines (chart extra) |

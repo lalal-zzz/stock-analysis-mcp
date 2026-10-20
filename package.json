@@ -69,6 +69,7 @@
       "get_stock_kline_period",
       "get_rank_trend_data",
       "get_sector_list",
+      "get_sector_hot_rank",
       "get_stock_belong_sectors",
       "generate_stock_report",
       "scan_patterns",

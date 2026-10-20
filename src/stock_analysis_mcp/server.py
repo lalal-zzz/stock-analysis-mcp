@@ -201,6 +201,17 @@ async def _sectors(sector_type="concept") -> list[dict]:
     return await get_sector_list(sector_type)
 
 
+@register("get_sector_hot_rank", "同花顺热门概念板块热度榜、涨跌幅及相邻获取快照的正负热度差值；非全市场，来源行情时点未知，不提供延续上涨预测", {
+    "type": "object", "properties": {
+        "limit": {"type": "integer", "minimum": 1, "maximum": 20},
+        "offline": {"type": "boolean", "description": "只读本地缓存，不联网"},
+    }, "required": [],
+})
+async def _sector_hot_rank(limit=20, offline=False):
+    from .data.sector_hot import get_sector_hot_rank
+    return await asyncio.to_thread(get_sector_hot_rank, limit, offline)
+
+
 @register("get_stock_belong_sectors", "反查: 某只股票属于哪些板块(股票→板块)", {
     "type": "object",
     "properties": {"stock_code": {"type": "string", "description": "股票代码"}},

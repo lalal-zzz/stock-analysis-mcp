@@ -23,6 +23,7 @@ Call `get_data_status` before market-wide work or when freshness matters.
 | Initialize, update, inspect, repair data | `stock-analysis-data-init` | `get_data_status`, `init_full_data`, `update_daily_data`, `sync_stock_kline_universe` |
 | Ordinary-ST future removal, causes, conditions and application status | `stock-analysis-st-removal` | Skill collection/refresh/report helpers; see its cause-specific rule references |
 | General factor/sector/name screening | `stock-analysis-stock-screening` | `screen_stocks`, `get_sector_list`, `scan_patterns` |
+| Hot concepts / 板块人气、热度差值 | `stock-analysis-stock-screening` | `get_sector_hot_rank` (THS codes, bounded list, source as-of unknown) |
 | Find rising structures and deeply review 20 stocks | `stock-analysis-rising-patterns` | `screen_rising_candidates`, `prepare_stock_analysis` |
 | Analyze one stock | `stock-analysis-report-generation` | `prepare_stock_analysis`, `generate_stock_report`, `get_key_levels` |
 | Compare monthly/weekly/daily/intraday structure or historical shape similarity | `stock-analysis-multi-timeframe` | `prepare_stock_analysis`, `get_stock_kline_period`, `find_cross_timeframe_similar_patterns` |

@@ -138,7 +138,7 @@ pip install stock-analysis-mcp
 
 ---
 
-## MCP 工具 (30 个)
+## MCP 工具 (31 个)
 
 | 工具 | 功能 |
 |------|------|
@@ -150,6 +150,7 @@ pip install stock-analysis-mcp
 | `get_stock_kline_period` | 个股多周期 K 线：1/5/15/30/60 分钟线 + 日/周/月线（纯网络实时） |
 | `get_rank_trend_data` | 查询个股 N 天内的人气排名历史走势 |
 | `get_sector_list` | 获取概念/行业板块列表及其行情数据 |
+| `get_sector_hot_rank` | 同花顺热门概念板块热度榜、涨跌幅、相邻获取快照的正负热度差值与排名改善值；来源行情时点未知，非全市场 |
 | `get_stock_belong_sectors` | 反向查询：某只股票属于哪些板块 |
 | `generate_stock_report` | 生成个股综合分析报告（趋势/支撑阻力/风险等级/仓位建议） |
 | `scan_patterns` | 股票形态扫描：全市场或指定股票、指定日期，普通档 / strict 优中选优档 |
