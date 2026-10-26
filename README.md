@@ -142,7 +142,7 @@ pip install stock-analysis-mcp
 
 ---
 
-## MCP Tools (31 tools)
+## MCP Tools (33 tools)
 
 | Tool | Module | Purpose |
 |------|--------|---------|
@@ -152,6 +152,8 @@ pip install stock-analysis-mcp
 | `screen_stocks` | `data_manager` | Universal screening: 18 conditions + sector filter + name search + sort |
 | `get_kline_local_or_net` | `data_manager` | Daily K-line, local-first with cached technical indicators |
 | `get_stock_kline_period` | `stock_data` | Multi-period K-line (1/5/15/30/60m, day/week/month, real-time) |
+| `get_stock_order_book` | `data/auction` | Timestamped five-level book; fresh pre-open observations archived locally |
+| `get_stock_auction` | `data/auction` | Free TDX auction snapshots: price, matched/unmatched volume, measured sampling gaps; separate opening execution, not full per-second orders; [precision limits](docs/opening-auction.md) |
 | `get_rank_trend_data` | `data_manager` | Historical popularity ranking trend (N days) |
 | `get_sector_list` | `sector_data` | Concept/industry sector list with capital flow |
 | `get_sector_hot_rank` | `sector_hot` | THS hot concept ranking, heat, price change and signed changes between saved observations; bounded list, source as-of unknown |
@@ -180,6 +182,14 @@ pip install stock-analysis-mcp
 
 Multi-asset tools query data on demand without stock initialization. Specify the market explicitly, e.g. `sh000001` with `asset_type=index`; fund NAV `000001` has a separate identity. Data uses namespaced JSON caches and is not included in stock screening, pattern scans or backtests. Bond data covers exchange quotes, not interbank bonds or yields. See [multi-asset examples, sources and limits](docs/multi-asset-data.md).
 
+
+### Opening auction: price, matched and unmatched volume
+
+Call `get_stock_auction` with `{"symbol":"000001"}` for the source's 09:15–09:25 auction-process snapshots. Each point includes the reference price, virtual matched volume, unmatched buy/sell volume and direction. Volumes are normalized to shares; amounts are calculated as price times shares. The separate `opening_match` contains the opening execution when available. Use `get_stock_order_book` for the current five-level book, or `get_stock_auction` with `{"symbol":"000001","trade_date":"2026-10-26","offline":true}` to read a saved process without networking. Stock-history initialization is not required.
+
+The free TDX source provides sampled snapshots, not every order or every second. The response's `precision` reports the actual first/last timestamps, sample intervals and missing seconds. On 2026-10-26, Ping An Bank returned 67 process points with a 9-second median interval; Shanghai Pudong Development Bank returned 77 with a 6-second median. These are observations, not guaranteed refresh rates. Virtual matched volumes must not be summed, and unmatched volume is not the total order book across all prices.
+
+Queries can run at 09:26 and after the auction. Source execution timestamps can be a few seconds after 09:25; these are retained rather than discarded. The 09:26 call path was tested with a simulated clock, and after-hours network reads succeeded, but completeness at exactly 09:26 has not been verified live. Historical availability is limited, source responses do not echo the requested date/code, and exchange-to-client latency is unverified. Provider failure falls back to clearly disclosed partial or archived data. See [fields, observed precision and source limits](docs/opening-auction.md).
 
 ### Hot concept sectors: heat, price change and signed deltas
 

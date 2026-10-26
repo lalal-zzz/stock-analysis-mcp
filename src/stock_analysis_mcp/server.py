@@ -1,6 +1,6 @@
 """
 股票分析 MCP Server — 精简入口
-暴露30个工具，包含股票、多品种行情、基金净值、结构研究、新闻和A股财务。
+暴露33个工具，包含股票、竞价盘口、多品种行情、结构研究、新闻和A股财务。
 """
 
 import asyncio
@@ -595,6 +595,27 @@ async def _asset_nav(symbol, start_date="2020-01-01", end_date=None, page=1, pag
 async def _asset_convertible(symbol, market=None, offline=False):
     from .data.assets import get_convertible
     return await asyncio.to_thread(get_convertible, symbol, market, offline)
+
+
+@register("get_stock_order_book", "沪深北A股实时五档盘口，附来源时间和新鲜度；竞价时段的新鲜快照自动留档，不提供逐笔委托撤单", {
+    "type": "object", "properties": {"symbol": {"type": "string", "description": "A股代码，如000001或sh600000"}},
+    "required": ["symbol"],
+})
+async def _stock_order_book(symbol):
+    from .data.auction import get_stock_order_book
+    return await asyncio.to_thread(get_stock_order_book, symbol)
+
+
+@register("get_stock_auction", "查询09:15–09:25竞价参考价、虚拟匹配量、未匹配买卖量的完整来源采样序列；金额按价量计算，09:25正式成交单列；TDX专用源优先，历史按源实际覆盖，离线只读缓存；降级披露未匹配量缺失", {
+    "type": "object", "properties": {
+        "symbol": {"type": "string", "description": "A股代码"},
+        "trade_date": {"type": "string", "description": "YYYY-MM-DD，默认北京时间今天；历史按来源保留范围，缺失不补造"},
+        "offline": {"type": "boolean", "description": "仅查本地留档，默认false"},
+    }, "required": ["symbol"],
+})
+async def _stock_auction(symbol, trade_date=None, offline=False):
+    from .data.auction import get_stock_auction
+    return await asyncio.to_thread(get_stock_auction, symbol, trade_date, offline)
 
 
 @_sdk_decorator("list_tools")

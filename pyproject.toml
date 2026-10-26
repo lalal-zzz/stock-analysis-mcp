@@ -55,12 +55,17 @@ stock-analysis-cli = "stock_analysis_mcp.cli:main"
 [tool.hatch.build.targets.wheel]
 packages = ["src/stock_analysis_mcp"]
 
+[tool.hatch.build.targets.wheel.force-include]
+"docs/third-party-notices.md" = "stock_analysis_mcp/THIRD_PARTY_NOTICES.md"
+
 [tool.hatch.build.targets.sdist]
 include = [
     "/src/stock_analysis_mcp",
     "/README.md",
     "/LICENSE",
     "/pyproject.toml",
+    "/docs/opening-auction.md",
+    "/docs/third-party-notices.md",
 ]
 
 [tool.pytest.ini_options]

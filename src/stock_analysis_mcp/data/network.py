@@ -178,6 +178,59 @@ def http_get(url: str, params: dict = None, retries: int = 3, timeout: int = 20,
     return None
 
 
+def tdx_request(host: str, market: int, symbol: str, day: int, timeout: float = 4) -> bytes:
+    """Bounded TDX 0x056a transport; binary sockets stay in the network layer.
+
+    Wire layout reference: injoyai/tdx (MIT), see docs/third-party-notices.md.
+    This is not HTTP; HTTP sources must continue using http_get/http_get_text.
+    """
+    import struct
+    import zlib
+
+    deadline = time.monotonic() + timeout
+
+    def exact(sock, size):
+        chunks = bytearray()
+        while len(chunks) < size:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise TimeoutError("TDX request deadline")
+            sock.settimeout(remaining)
+            chunk = sock.recv(size - len(chunks))
+            if not chunk:
+                raise OSError("TDX connection closed")
+            chunks.extend(chunk)
+        return bytes(chunks)
+
+    def exchange(sock, command, data, request_id):
+        size = len(data) + 2
+        frame = struct.pack("<BIBHHH", 12, request_id, 1, size, size, command) + data
+        sock.sendall(frame)
+        header = exact(sock, 16)
+        response_command, compressed_size, size = struct.unpack_from("<HHH", header, 10)
+        if header[:4] != bytes.fromhex("b1cb7400") or response_command != command:
+            raise ValueError("unexpected TDX frame")
+        if struct.unpack_from("<I", header, 5)[0] != request_id:
+            raise ValueError("TDX request identity mismatch")
+        payload = exact(sock, compressed_size)
+        if compressed_size != size:
+            decoder = zlib.decompressobj()
+            try:
+                payload = decoder.decompress(payload, 65536)
+            except zlib.error as exc:
+                raise ValueError("invalid TDX compression") from exc
+            if not decoder.eof or decoder.unconsumed_tail:
+                raise ValueError("invalid TDX compression")
+        if len(payload) != size:
+            raise ValueError("TDX payload length mismatch")
+        return payload
+
+    with socket.create_connection((host, 7709), timeout=timeout) as sock:
+        exchange(sock, 0x000D, b"\x01", 1)
+        body = struct.pack("<H6sIIIII", market, symbol.encode("ascii"), day, 3, 0, 0, 500)
+        return exchange(sock, 0x056A, body, 2)
+
+
 def http_get_text(url: str, params: dict = None, retries: int = 3, timeout: int = 20,
                   encoding: str = None, extra_headers: dict = None,
                   impersonate: str = "edge", use_cookies: bool = True,

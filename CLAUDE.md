@@ -4,18 +4,19 @@ Essential guidance for Claude Code. See [AGENTS.md](AGENTS.md) for operational d
 
 ## Project
 
-Local-first A-share intelligent research MCP with on-demand multi-asset queries. A Node ESM shim launches the Python stdio server, which exposes 30 tools and stores user-owned stock/sector data in WAL-mode SQLite. Thirteen Agent Skills compose the tools into data maintenance, screening, chart review, single-stock analysis, multi-timeframe analysis, rising-pattern research, dividends, and backtesting. Multi-asset JSON caches keep explicit market/type/code identities separate from stock tables; see docs/multi-asset-data.md.
+Local-first A-share intelligent research MCP with on-demand multi-asset queries. A Node ESM shim launches the Python stdio server, which exposes 33 tools and stores user-owned stock/sector data in WAL-mode SQLite. Agent Skills compose the tools into data maintenance, screening, chart review, single-stock analysis, multi-timeframe analysis, rising-pattern research, dividends, and backtesting. Multi-asset JSON caches keep explicit market/type/code identities separate from stock tables; see docs/multi-asset-data.md.
 
 ## Runtime
 
 - `index.js`: resolves `STOCK_ANALYSIS_PYTHON` → managed `runtime.json` → `python`, sets `PYTHONPATH`, and proxies stdio.
-- `src/stock_analysis_mcp/server.py`: real MCP server and 30-tool `@register` registry.
+- `src/stock_analysis_mcp/server.py`: real MCP server and 33-tool `@register` registry.
 - `bin/` and `lib/`: installer/configuration/agent adapters; root `skills/` is copied dynamically to Claude Code, Codex and Qoder.
 - Every tool result is `{data, meta, warnings, error}`.
 
 ## Important modules
 
 - `data/network.py`: the only network entry point; curl_cffi, Edge cookies, IPv4, host rotation and circuit breakers.
+- `data/auction.py` and `data/providers/tdx_auction.py`: free auction-process snapshots, matched/unmatched volume, measured sampling gaps, five-level book and independent cache; see docs/opening-auction.md. These are not full per-second order events. Keep source opening executions separate from virtual matching and do not promise completeness at 09:26.
 - `data/storage.py`: schemas, WAL, adjustment-aware storage, in-place legacy migration, coverage and signal caches.
 - `data/sync.py`: quick/research/full initialization and daily `none|tracked|all` K-line updates.
 - `data/build.py`: rebuild, gap fill, daily capture, indicator maintenance and cleanup.
@@ -45,7 +46,7 @@ Integration tests use real public APIs and local databases, so they are opt-in. 
 
 ## Non-obvious invariants
 
-1. Use `http_get`/`http_get_text`; never add direct `requests` or `httpx` calls.
+1. Use `http_get`/`http_get_text` for HTTP; never add direct `requests` or `httpx` calls. TDX binary auction calls use the bounded `tdx_request` in the same network layer.
 2. Stock daily K-line degradation is Tencent → akshare/Sina → Sohu. Sector historical K-lines remain Eastmoney-only because cross-source constituents and volume scales differ.
 3. Respect provider cooldown. Preserve partial progress and report incomplete coverage instead of retrying aggressively.
 4. K-line identity includes adjustment type. Do not merge QFQ, HFQ and unadjusted prices.

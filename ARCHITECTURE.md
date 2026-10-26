@@ -8,7 +8,7 @@
 MCP client
   → index.js (Node ESM stdio shim)
   → python -m stock_analysis_mcp.server
-  → 30 registered MCP handlers
+  → 33 registered MCP handlers
   → data / tools / strategies
   → user-owned SQLite databases and report/chart files
 ```
@@ -24,8 +24,9 @@ src/stock_analysis_mcp/
 │   ├── constants.py           # schema/indicator/pattern versions and research defaults
 │   └── registry.py            # future provider/feature extension registries
 ├── data/
-│   ├── providers/             # Tencent, Sina, Sohu and board-name mapping adapters
-│   ├── network.py             # curl_cffi, cookies, IPv4, retries and circuit breakers
+│   ├── providers/             # Tencent, Sina, Sohu, TDX auction and board-name mapping
+│   ├── network.py             # HTTP plus bounded TDX binary transport, cookies and breakers
+│   ├── auction.py             # auction snapshots, precision, book and independent cache
 │   ├── sources.py             # spot, daily K-line, popularity and trade-calendar sources
 │   ├── assets.py              # explicit market/type/code, multi-asset paging, quotes/K-lines/NAV
 │   ├── storage/               # stock/sector SQLite schemas, readers and writers
@@ -52,7 +53,7 @@ src/stock_analysis_mcp/
 │   └── trading_backtest.py    # callable event + executable trading backtest
 ├── charting.py                # daily/weekly/monthly PNG rendering
 ├── cli.py                     # maintenance and strategy CLI
-└── server.py                  # 30-tool MCP registry
+└── server.py                  # 33-tool MCP registry
 
 skills/                        # thirteen Agent Skills, discovered dynamically
 index.js                       # Node-to-Python stdio shim
@@ -93,6 +94,8 @@ providers
 - Sector historical K-line: Eastmoney only. Mixing board providers changes constituents and volume scale, so stale data is preferable to silent cross-source corruption.
 - Eastmoney K-line calls use host rotation and a circuit breaker. During cooldown, retain completed data and report partial coverage.
 - New network calls must use `data/network.py`, not direct `requests` or `httpx`.
+- Opening-auction process snapshots use TDX `0x056a` through the bounded `tdx_request` transport in the network layer. Eastmoney HTTP supplies supplementary minute data, five-level books and opening executions. The process cache is independent of the stock/sector databases.
+- Preserve measured sampling gaps, explicit-request date/identity limits and unavailable latency verification. Source timestamps accurate to seconds do not establish per-second coverage or a full order/cancellation stream. Keep virtual matching separate from opening executions; source execution timestamps shortly after 09:25 remain valid supplementary records.
 
 ## Research contracts
 

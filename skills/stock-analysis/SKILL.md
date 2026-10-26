@@ -24,6 +24,7 @@ Call `get_data_status` before market-wide work or when freshness matters.
 | Ordinary-ST future removal, causes, conditions and application status | `stock-analysis-st-removal` | Skill collection/refresh/report helpers; see its cause-specific rule references |
 | General factor/sector/name screening | `stock-analysis-stock-screening` | `screen_stocks`, `get_sector_list`, `scan_patterns` |
 | Hot concepts / 板块人气、热度差值 | `stock-analysis-stock-screening` | `get_sector_hot_rank` (THS codes, bounded list, source as-of unknown) |
+| 09:15–09:25 opening auction / 竞价价量、盘口 | This router; see `docs/opening-auction.md` | `get_stock_auction`, `get_stock_order_book` |
 | Find rising structures and deeply review 20 stocks | `stock-analysis-rising-patterns` | `screen_rising_candidates`, `prepare_stock_analysis` |
 | Analyze one stock | `stock-analysis-report-generation` | `prepare_stock_analysis`, `generate_stock_report`, `get_key_levels` |
 | Compare monthly/weekly/daily/intraday structure or historical shape similarity | `stock-analysis-multi-timeframe` | `prepare_stock_analysis`, `get_stock_kline_period`, `find_cross_timeframe_similar_patterns` |
@@ -42,6 +43,8 @@ ST-removal requests also do not require K-line initialization. Route them to the
 News/financial requests do not require stock-history initialization. Respect offline=true when downloads are paused. Financial providers have different statement/indicator/history capabilities; inspect the returned limits. These tools do not provide a complete web search or real-time global quotes.
 
 ## Shared analysis contract
+
+Auction requests need no K-line initialization. `get_stock_auction` prefers free TDX process snapshots with matched and signed unmatched quantities; it separates virtual matches from opening execution, and derives amounts from price times shares. Never sum virtual snapshots. Report `precision`: observed intervals, missing seconds, first/last timestamps, and `order_by_order_available=false`. Timestamp resolution is not sample frequency. No verified free full per-second/order-by-order auction stream is connected. Historical availability is limited; offline reads only archives. Eastmoney fallback lacks verified unmatched quantities and must be labelled partial. Keep source, observation, date-validation and latency-verification limits visible.
 
 1. Separate observed data, calculated evidence, interpretation, and conditional scenario.
 2. Prefer exact dates and prices over adjectives such as “near support”.
