@@ -67,3 +67,13 @@ Auction requests need no K-line initialization. `get_stock_auction` prefers free
 ## Tool result handling
 
 All MCP results use `{data, meta, warnings, error}`. Check `error` first, preserve `warnings`, and cite `meta.fetched_at` or the underlying market-data cutoff when freshness matters.
+
+
+## Shareholder holdings
+
+| Request | Tool |
+|---|---|
+| 个股机构、社保、养老持仓 | `get_stock_holdings` |
+| 按完整股东名称反查或季度市场明细 | `search_institution_holdings` |
+
+No history initialization required. Set scope top10 or float_top10; do not sum overlapping scopes or report periods. category filters only the current source page; keep paging based on source_pages/has_more. Disclosures are neither real-time nor exhaustive institutional portfolios. Preserve report_date, announcement_date and source_update_date separately. Distinguish social_security and pension; unknown/other is not an institution. Full-name matching does not merge accounts. offline reads cache only. See docs/institution-holdings.md in the repository.

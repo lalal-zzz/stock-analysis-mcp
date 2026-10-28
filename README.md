@@ -142,7 +142,7 @@ pip install stock-analysis-mcp
 
 ---
 
-## MCP Tools (33 tools)
+## MCP Tools (35 tools)
 
 | Tool | Module | Purpose |
 |------|--------|---------|
@@ -179,9 +179,17 @@ pip install stock-analysis-mcp
 | `get_market_kline` | `data/assets` | Unadjusted daily/weekly/monthly index, ETF/LOF and convertible bond K-lines |
 | `get_fund_nav` | `data/assets` | Paged unit/accumulated NAV and subscription/redemption status |
 | `get_convertible_bond_info` | `data/assets` | Underlying stock, conversion price/value/premium and reference trigger prices |
+| `get_stock_holdings` | `data/holdings` | Disclosed top-ten shareholders / tradable shareholders, social-security and pension categories |
+| `search_institution_holdings` | `data/holdings` | Exact holder-name reverse lookup or explicit-quarter market pages |
 
 Multi-asset tools query data on demand without stock initialization. Specify the market explicitly, e.g. `sh000001` with `asset_type=index`; fund NAV `000001` has a separate identity. Data uses namespaced JSON caches and is not included in stock screening, pattern scans or backtests. Bond data covers exchange quotes, not interbank bonds or yields. See [multi-asset examples, sources and limits](docs/multi-asset-data.md).
 
+
+### Disclosed shareholder holdings
+
+Use `get_stock_holdings` with `{"symbol":"000001","report_date":"2026-06-30","scope":"float_top10"}` for a stock's disclosed tradable shareholders. Use `search_institution_holdings` with `{"holder_name":"全国社保基金一零一组合","report_date":"2026-06-30"}` for exact-name reverse lookup. Both support independent caching and offline reads without initializing stock history.
+
+Social security and basic pension funds are separate categories. Classification filters only the current provider page; follow source pagination for further records. Top-ten disclosures are neither real-time nor complete institutional portfolios. Keep report dates and announcement dates separate, and do not sum overlapping scopes or report periods. See [parameters, fields and coverage limits](docs/institution-holdings.md).
 
 ### Opening auction: price, matched and unmatched volume
 

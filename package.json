@@ -94,7 +94,9 @@
       "get_market_quote",
       "get_market_kline",
       "get_fund_nav",
-      "get_convertible_bond_info"
+      "get_convertible_bond_info",
+      "get_stock_holdings",
+      "search_institution_holdings"
     ]
   },
   "publishConfig": {

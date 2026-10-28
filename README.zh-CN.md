@@ -144,7 +144,7 @@ pip install stock-analysis-mcp
 
 调用 `get_sector_hot_rank(comparison="daily_1430", trade_date="2026-10-21")` 或 CLI `sector-hot-1430 --date 2026-10-21`，只读与前一交易日同窗口的热度差值、热度变化百分比、排名改善及新入/留榜/离榜。漏采前一交易日则差值为null，不拿更早日期代替。来源行情时点未知，获取时刻不等于行情更新时刻。“高热度高涨幅延续两日”仍待历史验证，不能视为已验证套利。详见[采集与比较口径](docs/sector-hot-rank.md)。
 
-## MCP 工具 (33 个)
+## MCP 工具 (35 个)
 
 | 工具 | 功能 |
 |------|------|
@@ -181,8 +181,19 @@ pip install stock-analysis-mcp
 | `get_market_kline` | 指数、ETF/LOF、可转债日／周／月未复权 K 线；普通债券历史暂未接入 |
 | `get_fund_nav` | 分页单位／累计净值及申赎状态 |
 | `get_convertible_bond_info` | 正股关联、转股价／价值／溢价率和条款参考触发价 |
+| `get_stock_holdings` | 个股十大股东／十大流通股东，含社保、养老等分类及报告期、公告日与持股变化 |
+| `search_institution_holdings` | 按股东完整名称反查持股，或指定季度末分页查询市场股东明细 |
 
 多品种数据按需查询，无需股票初始化，身份为市场＋品种＋代码。例如 `sh000001` 配合 `asset_type=index` 与基金净值 `000001` 分开缓存。新数据未接入股票筛选、形态扫描或回测。债券先覆盖交易所报价，尚未覆盖银行间、收益率、评级和强赎公告。使用方式、来源和边界见[多品种数据文档](docs/multi-asset-data.md)。
+
+### 机构披露持仓
+
+| Tool | Purpose |
+|---|---|
+| `get_stock_holdings` | 个股十大股东/十大流通股东，含社保、养老等分类 |
+| `search_institution_holdings` | 按完整股东名称反查或按季度末分页查询 |
+
+[参数、示例与覆盖限制 / usage and limits](docs/institution-holdings.md). 定期披露非实时或全部机构持仓；分类仅过滤当前来源页。
 
 ### 集合竞价：参考价、匹配量与未匹配买卖量
 

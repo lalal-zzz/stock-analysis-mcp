@@ -618,6 +618,34 @@ async def _stock_auction(symbol, trade_date=None, offline=False):
     return await asyncio.to_thread(get_stock_auction, symbol, trade_date, offline)
 
 
+_HOLDING_PROPERTIES = {
+    "report_date": {"type": "string", "description": "季度末YYYY-MM-DD；个股省略时按报告期倒序分页，并非仅最新一期"},
+    "scope": {"type": "string", "enum": ["top10", "float_top10"]},
+    "category": {"type": "string", "enum": ["all", "social_security", "pension", "fund", "insurance", "qfii", "broker", "trust", "other"]},
+    "page": {"type": "integer", "minimum": 1, "maximum": 100},
+    "page_size": {"type": "integer", "minimum": 1, "maximum": 500},
+    "offline": {"type": "boolean"}, "refresh": {"type": "boolean"},
+}
+
+
+@register("get_stock_holdings", "个股已披露十大股东/十大流通股东，含社保、养老等名称分类、报告期、公告日及持股变化；非全部或实时机构持仓", {
+    "type": "object", "properties": {"symbol": {"type": "string"}, **_HOLDING_PROPERTIES}, "required": ["symbol"],
+})
+async def _stock_holdings(symbol, report_date=None, scope="float_top10", category="all", page=1, page_size=100, offline=False, refresh=False):
+    from .data.holdings import get_stock_holdings
+    return await asyncio.to_thread(get_stock_holdings, symbol, report_date=report_date, scope=scope,
+        category=category, page=page, page_size=page_size, offline=offline, refresh=refresh)
+
+
+@register("search_institution_holdings", "按股东完整名称反查披露持股，或指定季度末分页查询市场股东明细；category仅在当前页分类过滤，不保证全部机构覆盖", {
+    "type": "object", "properties": {"holder_name": {"type": "string", "description": "股东完整名称，精确匹配；省略时必须指定report_date"}, **_HOLDING_PROPERTIES},
+})
+async def _institution_holdings(holder_name=None, report_date=None, scope="float_top10", category="all", page=1, page_size=100, offline=False, refresh=False):
+    from .data.holdings import search_institution_holdings
+    return await asyncio.to_thread(search_institution_holdings, holder_name=holder_name, report_date=report_date,
+        scope=scope, category=category, page=page, page_size=page_size, offline=offline, refresh=refresh)
+
+
 @_sdk_decorator("list_tools")
 async def list_tools() -> list[Tool]:
     return [

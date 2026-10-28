@@ -8,7 +8,7 @@
 MCP client
   → index.js (Node ESM stdio shim)
   → python -m stock_analysis_mcp.server
-  → 33 registered MCP handlers
+  → 35 registered MCP handlers
   → data / tools / strategies
   → user-owned SQLite databases and report/chart files
 ```
@@ -28,6 +28,7 @@ src/stock_analysis_mcp/
 │   ├── network.py             # HTTP plus bounded TDX binary transport, cookies and breakers
 │   ├── auction.py             # auction snapshots, precision, book and independent cache
 │   ├── sources.py             # spot, daily K-line, popularity and trade-calendar sources
+│   ├── holdings.py            # disclosed shareholders, categories and reverse lookup
 │   ├── assets.py              # explicit market/type/code, multi-asset paging, quotes/K-lines/NAV
 │   ├── storage/               # stock/sector SQLite schemas, readers and writers
 │   ├── search.py              # local queries and coverage/status reporting
@@ -53,7 +54,7 @@ src/stock_analysis_mcp/
 │   └── trading_backtest.py    # callable event + executable trading backtest
 ├── charting.py                # daily/weekly/monthly PNG rendering
 ├── cli.py                     # maintenance and strategy CLI
-└── server.py                  # 33-tool MCP registry
+└── server.py                  # 35-tool MCP registry
 
 skills/                        # thirteen Agent Skills, discovered dynamically
 index.js                       # Node-to-Python stdio shim
@@ -111,3 +112,7 @@ providers
 - Keep MCP handlers thin; add a registered tool only for a stable user-facing workflow.
 - When the registry changes, synchronize `package.json`, both README files, AGENTS/CLAUDE guidance, and affected Skills.
 - Add migration and coverage tests for every persistent-schema change.
+
+## Disclosed shareholder holdings
+
+`get_stock_holdings` queries top-ten shareholders or top-ten tradable shareholders; `search_institution_holdings` uses an exact holder name or an explicit quarter end. Both use the existing network layer and an independent `information-cache` namespace. Classification filters the current provider page only. Keep report dates, announcement dates and source update dates separate; do not sum overlapping scopes or multiple periods. Missing records do not establish zero holdings. See [fields, examples and limits](docs/institution-holdings.md).

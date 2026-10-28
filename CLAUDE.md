@@ -4,17 +4,18 @@ Essential guidance for Claude Code. See [AGENTS.md](AGENTS.md) for operational d
 
 ## Project
 
-Local-first A-share intelligent research MCP with on-demand multi-asset queries. A Node ESM shim launches the Python stdio server, which exposes 33 tools and stores user-owned stock/sector data in WAL-mode SQLite. Agent Skills compose the tools into data maintenance, screening, chart review, single-stock analysis, multi-timeframe analysis, rising-pattern research, dividends, and backtesting. Multi-asset JSON caches keep explicit market/type/code identities separate from stock tables; see docs/multi-asset-data.md.
+Local-first A-share intelligent research MCP with on-demand multi-asset queries. A Node ESM shim launches the Python stdio server, which exposes 35 tools and stores user-owned stock/sector data in WAL-mode SQLite. Agent Skills compose the tools into data maintenance, screening, chart review, single-stock analysis, multi-timeframe analysis, rising-pattern research, dividends, and backtesting. Multi-asset JSON caches keep explicit market/type/code identities separate from stock tables; see docs/multi-asset-data.md.
 
 ## Runtime
 
 - `index.js`: resolves `STOCK_ANALYSIS_PYTHON` → managed `runtime.json` → `python`, sets `PYTHONPATH`, and proxies stdio.
-- `src/stock_analysis_mcp/server.py`: real MCP server and 33-tool `@register` registry.
+- `src/stock_analysis_mcp/server.py`: real MCP server and 35-tool `@register` registry.
 - `bin/` and `lib/`: installer/configuration/agent adapters; root `skills/` is copied dynamically to Claude Code, Codex and Qoder.
 - Every tool result is `{data, meta, warnings, error}`.
 
 ## Important modules
 
+- `data/holdings.py`: disclosed shareholder queries and exact-name reverse lookup, with independent cache; distinguish social security and pension, preserve report/publication dates, and disclose page-local classification and top-ten coverage. See [holdings documentation](docs/institution-holdings.md).
 - `data/network.py`: the only network entry point; curl_cffi, Edge cookies, IPv4, host rotation and circuit breakers.
 - `data/auction.py` and `data/providers/tdx_auction.py`: free auction-process snapshots, matched/unmatched volume, measured sampling gaps, five-level book and independent cache; see docs/opening-auction.md. These are not full per-second order events. Keep source opening executions separate from virtual matching and do not promise completeness at 09:26.
 - `data/storage.py`: schemas, WAL, adjustment-aware storage, in-place legacy migration, coverage and signal caches.
