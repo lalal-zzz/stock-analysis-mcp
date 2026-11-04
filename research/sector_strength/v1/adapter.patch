@@ -1,0 +1,35 @@
+diff --git a/src/stock_analysis_mcp/data/network.py b/src/stock_analysis_mcp/data/network.py
+index b9faebd..00d68b6 100644
+--- a/src/stock_analysis_mcp/data/network.py
++++ b/src/stock_analysis_mcp/data/network.py
+@@ -164,7 +164,7 @@ def http_get(url: str, params: dict = None, retries: int = 3, timeout: int = 20,
+                 http_version="v1",
+                 verify=verify,
+                 timeout=timeout,
+-                proxies={"http": "", "https": ""},
++                proxies=({"http": os.environ.get("HTTP_PROXY", ""), "https": os.environ.get("HTTPS_PROXY", "")} if not _NET_PATCH_ENABLED else {"http": "", "https": ""}),
+             )
+             if resp.status_code == 200:
+                 return resp.json()
+@@ -261,7 +261,7 @@ def http_get_text(url: str, params: dict = None, retries: int = 3, timeout: int
+                 http_version="v1",
+                 verify=verify,
+                 timeout=timeout,
+-                proxies={"http": "", "https": ""},
++                proxies=({"http": os.environ.get("HTTP_PROXY", ""), "https": os.environ.get("HTTPS_PROXY", "")} if not _NET_PATCH_ENABLED else {"http": "", "https": ""}),
+             )
+             if resp.status_code == 200:
+                 if encoding:
+diff --git a/src/stock_analysis_mcp/data/providers/tencent.py b/src/stock_analysis_mcp/data/providers/tencent.py
+index 1e58a43..a4f4925 100644
+--- a/src/stock_analysis_mcp/data/providers/tencent.py
++++ b/src/stock_analysis_mcp/data/providers/tencent.py
+@@ -27,7 +27,7 @@ from ..network import (
+ 
+ PROVIDER = "tencent"
+ 
+-FQKLINE_URL = "https://web.ifzq.gtimg.cn/appstock/app/fqkline/get"
++FQKLINE_URL = "https://proxy.finance.qq.com/ifzqgtimg/appstock/app/fqkline/get"
+ KLINE_URL = "https://web.ifzq.gtimg.cn/appstock/app/kline/kline"
+ MKLINE_URL = "https://ifzq.gtimg.cn/appstock/app/kline/mkline"
+ BOARD_RANK_URL = "https://proxy.finance.qq.com/cgi/cgi-bin/rank/pt/getRank"

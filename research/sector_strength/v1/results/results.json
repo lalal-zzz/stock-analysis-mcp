@@ -1,0 +1,96 @@
+{
+  "repo": "https://github.com/lalal-zzz/stock-analysis-mcp",
+  "commit": "48c3ee1626b7dedda73cf3e281fe155de72b9abb",
+  "data_source": "repository Sina industry members, Tencent raw stock bars, Sina qfq factors (same factor source as repository akshare/Sina fallback); adjusted OHLC=raw/factor for every stock, no per-stock price-source splicing; CSI300 raw index bars",
+  "selection_universe": "Sina declared member counts 8..80, complete membership response, >=95% download/day coverage, >=8 usable members",
+  "asof": "2026-11-03",
+  "quality_ok_stocks": 1066,
+  "requested_stocks": 1098,
+  "industries": 25,
+  "panel_rows": 16000,
+  "raw_date_start": "2024-03-13",
+  "raw_date_end": "2026-11-03",
+  "selected_config": {
+    "name": "h5_p2_limit",
+    "half": 5,
+    "power": 2,
+    "weights": "limit",
+    "linear": false,
+    "interaction": true
+  },
+  "test_summary": {
+    "linear_baseline": {
+      "days": 114,
+      "mean_ic": -0.07380488314126757,
+      "mean_top_excess": -0.0012976530480427937,
+      "mean_spread": -0.0037333395896898174,
+      "mean_universe_excess": -0.00018055278923386443,
+      "top_beats_benchmark_rate": 0.4298245614035088,
+      "ic_95_block_ci": [
+        -0.13680903050039206,
+        -0.012952378475833873
+      ],
+      "spread_95_block_ci": [
+        -0.007945151040848725,
+        0.00045089974316749986
+      ]
+    },
+    "nonlinear_fixed": {
+      "days": 114,
+      "mean_ic": -0.05358620403242828,
+      "mean_top_excess": -0.0009470397931472701,
+      "mean_spread": -0.0023127704944021447,
+      "mean_universe_excess": -0.00018055278923386443,
+      "top_beats_benchmark_rate": 0.45614035087719296,
+      "ic_95_block_ci": [
+        -0.11492821547255185,
+        0.00037194679843417333
+      ],
+      "spread_95_block_ci": [
+        -0.006409997833471589,
+        0.0020883524813731253
+      ]
+    },
+    "h5_p2_limit": {
+      "days": 114,
+      "mean_ic": -0.06344283100576005,
+      "mean_top_excess": -0.0011048181851380052,
+      "mean_spread": -0.0026700493459116013,
+      "mean_universe_excess": -0.00018055278923386487,
+      "top_beats_benchmark_rate": 0.4824561403508772,
+      "ic_95_block_ci": [
+        -0.11485606689268013,
+        -0.010975932153277693
+      ],
+      "spread_95_block_ci": [
+        -0.0060007711043865136,
+        0.0010570710154723473
+      ]
+    }
+  },
+  "paired_delta": {
+    "mean_ic_delta": 0.010362052135507512,
+    "ic_delta_95_block_ci": [
+      -0.012776400563585921,
+      0.03237975277963835
+    ],
+    "mean_spread_delta": 0.001063290243778216,
+    "spread_delta_95_block_ci": [
+      -0.001374038125389376,
+      0.0033509766828463267
+    ]
+  },
+  "price_basis": "all stock prices use Tencent raw divided by Sina qfq factors; downloaded Tencent qfq is retained as auxiliary evidence, not mixed into analysis",
+  "label": "next-open to open h sessions later, stock-level forward returns averaged by current industry, minus CSI300 same interval; event study, no executable portfolio or costs",
+  "limitations": [
+    "Current membership/size filter and exclusion of current ST stocks create selection/survivorship bias.",
+    "Candidate limit-up is inferred from standard board raw previous close, rounded to cents, qfq/raw return consistency, >20 observed sessions; not verified exchange limit prices; historical ST/IPO status unavailable.",
+    "Industry basket is equal-weight current constituents, not official Eastmoney sector index.",
+    "Money-flow history unavailable; volume ratio used instead; no sector-code cross-provider merging.",
+    "No fees/slippage/limit-up fills/portfolio capacity model.",
+    "34 parameter configurations; selection on validation only; test is one exploratory holdout.",
+    "A stock may occur in multiple current industry definitions; industry observations not independent."
+  ],
+  "unique_contributing_stocks": 782,
+  "raw_stock_bars_downloaded": 690792
+}

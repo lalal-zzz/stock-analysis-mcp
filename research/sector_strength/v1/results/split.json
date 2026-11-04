@@ -1,0 +1,17 @@
+{
+  "train": {
+    "start": "2024-05-16",
+    "end": "2025-10-21",
+    "signal_dates": 348
+  },
+  "validation": {
+    "start": "2025-11-06",
+    "end": "2026-04-20",
+    "signal_dates": 109
+  },
+  "test": {
+    "start": "2026-05-11",
+    "end": "2026-11-03",
+    "signal_dates": 120
+  }
+}

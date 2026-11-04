@@ -1,0 +1,62 @@
+[
+  {
+    "year": 2020,
+    "status": "ok",
+    "train_signal_start": "2018-05-30",
+    "train_signal_end": "2018-12-20",
+    "train_latest_label_exit": "2018-12-28",
+    "validation_signal_start": "2019-01-02",
+    "validation_signal_end": "2019-12-23",
+    "validation_latest_label_exit": "2019-12-31",
+    "test_signal_start": "2020-01-02",
+    "test_signal_end": "2020-12-23",
+    "test_days": 237,
+    "alpha": 100.0,
+    "validation_best_ic": 0.034030814765410394
+  },
+  {
+    "year": 2021,
+    "status": "ok",
+    "train_signal_start": "2018-05-30",
+    "train_signal_end": "2019-12-23",
+    "train_latest_label_exit": "2019-12-31",
+    "validation_signal_start": "2020-01-02",
+    "validation_signal_end": "2020-12-23",
+    "validation_latest_label_exit": "2020-12-31",
+    "test_signal_start": "2021-01-04",
+    "test_signal_end": "2021-12-23",
+    "test_days": 237,
+    "alpha": 1.0,
+    "validation_best_ic": -0.019612135119103195
+  },
+  {
+    "year": 2022,
+    "status": "ok",
+    "train_signal_start": "2018-05-30",
+    "train_signal_end": "2020-12-23",
+    "train_latest_label_exit": "2020-12-31",
+    "validation_signal_start": "2021-01-04",
+    "validation_signal_end": "2021-12-23",
+    "validation_latest_label_exit": "2021-12-31",
+    "test_signal_start": "2022-01-04",
+    "test_signal_end": "2022-12-22",
+    "test_days": 236,
+    "alpha": 1.0,
+    "validation_best_ic": 0.03454144847129234
+  },
+  {
+    "year": 2023,
+    "status": "ok",
+    "train_signal_start": "2018-05-30",
+    "train_signal_end": "2021-12-23",
+    "train_latest_label_exit": "2021-12-31",
+    "validation_signal_start": "2022-01-04",
+    "validation_signal_end": "2022-12-22",
+    "validation_latest_label_exit": "2022-12-30",
+    "test_signal_start": "2023-01-03",
+    "test_signal_end": "2023-12-21",
+    "test_days": 236,
+    "alpha": 10.0,
+    "validation_best_ic": 0.027939596126226166
+  }
+]

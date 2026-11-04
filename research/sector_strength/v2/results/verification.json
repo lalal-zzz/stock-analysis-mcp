@@ -1,0 +1,8 @@
+{
+  "feature_prefix_invariance": "passed",
+  "future_label_maturity": "passed",
+  "train_only_scaling": "passed",
+  "all_model_observations_identical": "passed",
+  "prior_v1_period_not_reused_as_fresh_test": "passed",
+  "spec_sha256": "f35de15d4f704ec169c9386218b2ac14501b5f98ec17886e73ecbc24863ec849"
+}

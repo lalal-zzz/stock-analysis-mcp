@@ -1,0 +1,6 @@
+[
+  "prefix invariance: passed",
+  "11-session split embargo: passed",
+  "model record alignment and identical eligible-score masks: passed",
+  "selection uses validation IC only: passed"
+]

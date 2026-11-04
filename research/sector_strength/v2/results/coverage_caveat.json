@@ -1,0 +1,12 @@
+{
+  "actual_first_train_signal": "2018-05-30",
+  "eligible_dates_by_year": {
+    "2018": 147,
+    "2019": 244,
+    "2020": 243,
+    "2021": 243,
+    "2022": 242,
+    "2023": 242
+  },
+  "scope_note": "2017 requested training range did not produce days with >=8 fully-covered industries; actual earliest eligible training signal is2018-05-30; this constrains the first fold. Coverage threshold was not relaxed after results."
+}

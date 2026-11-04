@@ -1,0 +1,6 @@
+**/data/
+**/raw_sina/
+**/stock_history/
+**/plot-cache/
+*.tar.gz
+**/*.parquet

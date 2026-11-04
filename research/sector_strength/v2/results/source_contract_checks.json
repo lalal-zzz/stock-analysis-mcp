@@ -1,0 +1,18 @@
+{
+  "limit_pool": {
+    "requested_date": "20261103",
+    "response_qdate": "20261104",
+    "accepted": false,
+    "reason": "Requested-date identity not established; response qdate differs, no verified date on individual rows; not used in any model"
+  },
+  "sina_full_history": {
+    "symbol_header_verified": true,
+    "incoming_javascript_executed": false,
+    "decoder": "installed akshare local decoder applied only to compressed string",
+    "cutoff": "2026-11-03",
+    "market_timestamp_freshness_verified": false
+  },
+  "experiment_spec_sha256": "f35de15d4f704ec169c9386218b2ac14501b5f98ec17886e73ecbc24863ec849",
+  "validate_script_sha256": "9343717a2ca8a9132616f53908eaa137de4a029c20633bc019832f71588e0c0e",
+  "v1_feature_script_sha256": "db76356095e5a42130ad2855448e749eb21c4dcf092b019da6e427ce1cf0f25d"
+}

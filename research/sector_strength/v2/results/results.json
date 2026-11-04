@@ -1,0 +1,146 @@
+{
+  "stocks_downloaded": 778,
+  "stock_source_bars": 4069083,
+  "industries": 23,
+  "panel_rows": 44735,
+  "source_crosscheck_stocks": 778,
+  "crosscheck_exact_fraction_mean": 1.0,
+  "historical_panel_first": "2016-01-04",
+  "historical_panel_last": "2023-12-29",
+  "source": "Sina full-history source from repository akshare fallback; all adjusted with archived Sina qfq factors; Tencent only independent overlap check",
+  "old_period_already_seen": "2024-03-13..2026-11-03",
+  "test_type": "historical retrospective holdouts, not prospective verification",
+  "limitations": [
+    "current constituent and survival selection bias",
+    "historical ST and exchange limit-price states unavailable; candidate-only limits",
+    "historical sector baskets are not official Eastmoney indices",
+    "current archived qfq factors, no historical publication snapshots",
+    "no fees, slippage, portfolio capacity or executable fills",
+    "predeclared new models motivated by prior-seen later period; historical reuse is not fully independent prospective evidence"
+  ],
+  "aggregate": [
+    {
+      "model": "nonmonotonic_heat",
+      "days": 946,
+      "mean_ic": 0.012519811606816932,
+      "ic_95_ci": [
+        -0.014978985085316743,
+        0.041098056893680915
+      ],
+      "mean_top_excess": 0.0035588339340695083,
+      "mean_spread": 0.0007067728464825449,
+      "spread_95_ci": [
+        -0.0011288995313235841,
+        0.002575367214750732
+      ],
+      "top_outperforms_rate": 0.5644820295983086
+    },
+    {
+      "model": "v1_linear_frozen",
+      "days": 946,
+      "mean_ic": 0.0001841298920384749,
+      "ic_95_ci": [
+        -0.03196727478510253,
+        0.03202198213548571
+      ],
+      "mean_top_excess": 0.003813566307927396,
+      "mean_spread": 0.0002696968940975886,
+      "spread_95_ci": [
+        -0.0019317226455003978,
+        0.0024153417023368437
+      ],
+      "top_outperforms_rate": 0.5422832980972516
+    },
+    {
+      "model": "v1_selected_frozen",
+      "days": 946,
+      "mean_ic": 0.0015681359187018214,
+      "ic_95_ci": [
+        -0.027342993454950306,
+        0.02843120610660714
+      ],
+      "mean_top_excess": 0.0032776458905873023,
+      "mean_spread": 8.531563028451634e-06,
+      "spread_95_ci": [
+        -0.0019573769369769763,
+        0.001956013912508729
+      ],
+      "top_outperforms_rate": 0.5433403805496829
+    },
+    {
+      "model": "walk_forward_ridge",
+      "days": 946,
+      "mean_ic": -0.009021784499485026,
+      "ic_95_ci": [
+        -0.03855032242630515,
+        0.0210949186292505
+      ],
+      "mean_top_excess": 0.003960398987260061,
+      "mean_spread": 2.7243701501687956e-05,
+      "spread_95_ci": [
+        -0.0018813950676268957,
+        0.0021060419248535157
+      ],
+      "top_outperforms_rate": 0.5750528541226215
+    }
+  ],
+  "paired": [
+    {
+      "model": "v1_linear_frozen",
+      "against": "v1_selected_frozen",
+      "days": 946,
+      "ic_delta": -0.0013840060266633485,
+      "ic_delta_95_ci": [
+        -0.00998453725438748,
+        0.0071377738129812796
+      ],
+      "spread_delta": 0.00026116533106913684,
+      "spread_delta_95_ci": [
+        -0.0004404501665442585,
+        0.0009946434959177198
+      ]
+    },
+    {
+      "model": "nonmonotonic_heat",
+      "against": "v1_selected_frozen",
+      "days": 946,
+      "ic_delta": 0.01095167568811511,
+      "ic_delta_95_ci": [
+        -0.0007032082447422928,
+        0.024622128583359562
+      ],
+      "spread_delta": 0.0006982412834540934,
+      "spread_delta_95_ci": [
+        -0.0003457440059947514,
+        0.0018733464606070257
+      ]
+    },
+    {
+      "model": "walk_forward_ridge",
+      "against": "v1_selected_frozen",
+      "days": 946,
+      "ic_delta": -0.010589920418186852,
+      "ic_delta_95_ci": [
+        -0.05031432902996941,
+        0.026473303754925813
+      ],
+      "spread_delta": 1.8712138473236556e-05,
+      "spread_delta_95_ci": [
+        -0.002749776263357102,
+        0.002874015654977586
+      ]
+    }
+  ],
+  "training_coverage_caveat": {
+    "actual_first_train_signal": "2018-05-30",
+    "eligible_dates_by_year": {
+      "2018": 147,
+      "2019": 244,
+      "2020": 243,
+      "2021": 243,
+      "2022": 242,
+      "2023": 242
+    },
+    "scope_note": "2017 requested training range did not produce days with >=8 fully-covered industries; actual earliest eligible training signal is2018-05-30; this constrains the first fold. Coverage threshold was not relaxed after results."
+  }
+}
