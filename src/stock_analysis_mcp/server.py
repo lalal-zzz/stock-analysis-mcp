@@ -1,6 +1,6 @@
 """
 股票分析 MCP Server — 精简入口
-暴露33个工具，包含股票、竞价盘口、多品种行情、结构研究、新闻和A股财务。
+提供股票、竞价盘口、多品种行情、ETF份额、结构研究、新闻和A股财务工具。
 """
 
 import asyncio
@@ -586,6 +586,19 @@ async def _asset_kline(symbol, asset_type, market=None, start_date="2020-01-01",
 async def _asset_nav(symbol, start_date="2020-01-01", end_date=None, page=1, page_size=100, offline=False):
     from .data.assets import get_nav
     return await asyncio.to_thread(get_nav, symbol, start_date, end_date, page, page_size, offline)
+
+
+@register("get_broad_etf_share_changes", "从沪深交易所报表动态识别境内股票宽基ETF，返回逐只及按指数汇总的份额变化与覆盖。默认比较各交易所最近两次披露，或指定两个日期", {
+    "type": "object", "properties": {
+        "symbols": {"type": "array", "items": {"type": "string", "pattern": "^(sh|sz)[0-9]{6}$"},
+                    "minItems": 1, "maxItems": 12, "description": "带交易所前缀的ETF代码，如 sh510300、sz159919"},
+        "start_date": {"type": "string", "description": "YYYY-MM-DD，可选。指定后按精确日期比较"},
+        "end_date": {"type": "string", "description": "YYYY-MM-DD，可选。默认北京时间今天"},
+    },
+})
+async def _broad_etf_shares(symbols=None, start_date=None, end_date=None):
+    from .data.etf_shares import get_broad_etf_share_changes
+    return await asyncio.to_thread(get_broad_etf_share_changes, symbols, start_date, end_date)
 
 
 @register("get_convertible_bond_info", "可转债行情、正股关联、转股价/价值/溢价率与条款触发价；不代表强赎公告或到期收益率", {

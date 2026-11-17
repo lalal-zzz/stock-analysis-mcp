@@ -144,7 +144,7 @@ pip install stock-analysis-mcp
 
 调用 `get_sector_hot_rank(comparison="daily_1430", trade_date="2026-10-21")` 或 CLI `sector-hot-1430 --date 2026-10-21`，只读与前一交易日同窗口的热度差值、热度变化百分比、排名改善及新入/留榜/离榜。漏采前一交易日则差值为null，不拿更早日期代替。来源行情时点未知，获取时刻不等于行情更新时刻。“高热度高涨幅延续两日”仍待历史验证，不能视为已验证套利。详见[采集与比较口径](docs/sector-hot-rank.md)。
 
-## MCP 工具 (35 个)
+## MCP 工具 (36 个)
 
 | 工具 | 功能 |
 |------|------|
@@ -180,6 +180,7 @@ pip install stock-analysis-mcp
 | `get_market_quote` | 明确市场／品种／代码并在源目录确认后查询行情，保留延迟和缓存状态 |
 | `get_market_kline` | 指数、ETF/LOF、可转债日／周／月未复权 K 线；普通债券历史暂未接入 |
 | `get_fund_nav` | 分页单位／累计净值及申赎状态 |
+| `get_broad_etf_share_changes` | 交易所披露的宽基 ETF 总份额、增减份数及变化率 |
 | `get_convertible_bond_info` | 正股关联、转股价／价值／溢价率和条款参考触发价 |
 | `get_stock_holdings` | 个股十大股东／十大流通股东，含社保、养老等分类及报告期、公告日与持股变化 |
 | `search_institution_holdings` | 按股东完整名称反查持股，或指定季度末分页查询市场股东明细 |
@@ -234,7 +235,7 @@ AI 先调用 `list_market_instruments(asset_type="etf", page=1, page_size=100)`�
 每个工具都公开 JSON Schema；服务端会校验必填字段、未知字段、基础类型、枚举值和数值范围。调用结果统一为 `{data, meta, warnings, error}`：先检查 `error`，再保留 `warnings`，并以 `meta` 和数据自身的截止日期判断新鲜度。工具不会承诺持续监控、推送通知或确定性买卖结论。
 
 
-附带 **14 个 Agent Skill**（由 `stock-analysis install` 自动安装），教授 AI 如何组合使用这些工具完成复杂选股和报告工作流：
+附带 **15 个 Agent Skill**（由 `stock-analysis install` 自动安装），教授 AI 如何组合使用这些工具完成复杂选股和报告工作流：
 
 | Skill | 用途 |
 |-------|------|
@@ -247,7 +248,14 @@ AI 先调用 `list_market_instruments(asset_type="etf", page=1, page_size=100)`�
 | `stock-analysis-chart-trend` | K线图结构归因与趋势线分析 |
 | `stock-analysis-rising-patterns` | 20只上涨形态候选逐股月周日深度分析 |
 | [a-share-dividends](skills/a-share-dividends/SKILL.md) | 历史、最新及已公告的未来分红，核验日期、来源与覆盖范围 |
+| [broad-etf-shares](skills/broad-etf-shares/SKILL.md) | 从沪深披露报表动态匹配境内宽基 ETF，按指数查看份额增减 |
 | [stock-analysis-st-removal](skills/stock-analysis-st-removal/SKILL.md) | 普通ST未来摘帽研究：全量名单、戴帽原因与日期、条件落实及可能窗口；申请前证据分析 |
+
+### 宽基 ETF 总份额
+
+`get_broad_etf_share_changes({})` 从沪深交易所披露动态匹配境内宽基 ETF，包含创业板、科创板与双创 50。默认比较每家交易所最近两次有效披露，返回逐只增减、按指数汇总和两市覆盖情况。要精确比较两天，可传入 `{"symbols":["sh510300","sz159919"],"start_date":"2026-11-13","end_date":"2026-11-16"}`。
+
+查询上一交易日份额，可在次日北京时间 08:30 左右复查，以两所返回的实际统计日为准。按日画总份额曲线时使用沪深均已披露的交易日。 [数据来源与覆盖](docs/multi-asset-data.md#宽基-etf-份额变化)
 
 ### 普通ST未来摘帽研究
 

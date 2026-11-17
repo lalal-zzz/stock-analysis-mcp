@@ -142,7 +142,7 @@ pip install stock-analysis-mcp
 
 ---
 
-## MCP Tools (35 tools)
+## MCP Tools (36 tools)
 
 | Tool | Module | Purpose |
 |------|--------|---------|
@@ -178,6 +178,7 @@ pip install stock-analysis-mcp
 | `get_market_quote` | `data/assets` | Confirm market/type/code in the source directory and return a delayed or cached quote |
 | `get_market_kline` | `data/assets` | Unadjusted daily/weekly/monthly index, ETF/LOF and convertible bond K-lines |
 | `get_fund_nav` | `data/assets` | Paged unit/accumulated NAV and subscription/redemption status |
+| `get_broad_etf_share_changes` | `data/etf_shares` | Compare exchange-disclosed ETF shares and report signed changes in shares and percent |
 | `get_convertible_bond_info` | `data/assets` | Underlying stock, conversion price/value/premium and reference trigger prices |
 | `get_stock_holdings` | `data/holdings` | Disclosed top-ten shareholders / tradable shareholders, social-security and pension categories |
 | `search_institution_holdings` | `data/holdings` | Exact holder-name reverse lookup or explicit-quarter market pages |
@@ -241,7 +242,7 @@ After updating source, restart the MCP service that uses this project's entrypoi
 
 Every tool publishes a JSON Schema. The server validates required and unknown fields, basic types, enum values, and numeric ranges. Results use `{data, meta, warnings, error}`: check `error` first, preserve `warnings`, and use both `meta` and the data cutoff date for freshness. The server does not provide persistent monitoring, push notifications, or deterministic buy/sell decisions.
 
-Ships with **14 Agent Skills** (installed automatically by `stock-analysis install`):
+Ships with **15 Agent Skills** (installed automatically by `stock-analysis install`):
 
 | Skill | Purpose |
 |-------|---------|
@@ -254,7 +255,14 @@ Ships with **14 Agent Skills** (installed automatically by `stock-analysis insta
 | `stock-analysis-chart-trend` | Per-stock visual structure attribution with pivot and line uncertainty checks |
 | `stock-analysis-rising-patterns` | Rank 20 candidates, deeply review every monthly/weekly/daily chart, and summarize common traits |
 | [a-share-dividends](skills/a-share-dividends/SKILL.md) | Historical/latest dividends and announced future dates, with source and coverage checks |
+| [broad-etf-shares](skills/broad-etf-shares/SKILL.md) | Exchange-disclosed share changes for dynamically matched domestic broad-index ETFs or specified codes |
 | [stock-analysis-st-removal](skills/stock-analysis-st-removal/SKILL.md) | Forward-looking ordinary-ST removal research: current universe, trigger timeline, remaining conditions and evidence-backed windows |
+
+### Broad-market ETF shares
+
+Call `get_broad_etf_share_changes` with `{}` to compare the latest two available disclosures for each exchange. The default covers dynamically matched mainland broad-market ETFs, including ChiNext, STAR Market and STAR/ChiNext 50. Results include fund-level changes, benchmark totals for matching disclosure dates and exchange coverage.
+
+Pass `{"symbols":["sh510300","sz159919"],"start_date":"2026-11-13","end_date":"2026-11-16"}` for an exact-date comparison. Beijing time around 08:30 on the following day is a reference time to recheck the previous trading day's figures. Use the actual disclosure dates to verify availability. [Data sources and coverage](docs/multi-asset-data.md#宽基-etf-份额变化)
 
 ### Ordinary-ST removal research
 

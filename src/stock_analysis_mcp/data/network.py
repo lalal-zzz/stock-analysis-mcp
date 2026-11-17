@@ -240,6 +240,19 @@ def http_get_text(url: str, params: dict = None, retries: int = 3, timeout: int 
     encoding: 显式指定响应解码(如 GBK 站点 qt.gtimg.cn / sohu / sina);
     为 None 时使用 curl_cffi 自带的 charset 推断。
     """
+    return _http_get_content(url, params, retries, timeout, encoding, extra_headers,
+                             impersonate, use_cookies, verify, binary=False)
+
+
+def http_get_bytes(url: str, params: dict = None, retries: int = 3, timeout: int = 20,
+                   extra_headers: dict = None, use_cookies: bool = True) -> bytes | None:
+    """下载交易所公开报表等二进制响应。"""
+    return _http_get_content(url, params, retries, timeout, None, extra_headers,
+                             "edge", use_cookies, None, binary=True)
+
+
+def _http_get_content(url, params, retries, timeout, encoding, extra_headers,
+                      impersonate, use_cookies, verify, *, binary):
     full_url = f"{url}?{urlencode(params)}" if params else url
     headers = dict(DEFAULT_HEADERS)
     if extra_headers:
@@ -264,6 +277,8 @@ def http_get_text(url: str, params: dict = None, retries: int = 3, timeout: int 
                 proxies={"http": "", "https": ""},
             )
             if resp.status_code == 200:
+                if binary:
+                    return resp.content
                 if encoding:
                     return resp.content.decode(encoding, errors="replace")
                 return resp.text
@@ -273,7 +288,7 @@ def http_get_text(url: str, params: dict = None, retries: int = 3, timeout: int 
         if attempt < retries:
             time.sleep(1.5 * attempt)
 
-    logger.debug("http_get_text 全部重试失败: %s (%s)", full_url[:120], last_error)
+    logger.debug("http_get_content 全部重试失败: %s (%s)", full_url[:120], last_error)
     return None
 
 

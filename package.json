@@ -18,6 +18,7 @@
     ".mcp.json",
     "pyproject.toml",
     "docs/opening-auction.md",
+    "docs/multi-asset-data.md",
     "docs/third-party-notices.md",
     "README.md",
     "README.zh-CN.md",
@@ -94,6 +95,7 @@
       "get_market_quote",
       "get_market_kline",
       "get_fund_nav",
+      "get_broad_etf_share_changes",
       "get_convertible_bond_info",
       "get_stock_holdings",
       "search_institution_holdings"

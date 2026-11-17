@@ -35,6 +35,7 @@ Call `get_data_status` before market-wide work or when freshness matters.
 | Global macro and market news context | `stock-analysis-global-markets` | `get_global_market_news` |
 | A-share multi-source financial download, metrics and peers | `stock-analysis-financials` | `download_stock_financials`, `analyze_stock_financials` |
 | Index, ETF/LOF, fund NAV, convertible and exchange bond queries | This router; see `docs/multi-asset-data.md` | `list_market_instruments`, `get_market_quote`, `get_market_kline`, `get_fund_nav`, `get_convertible_bond_info` |
+| Broad-market ETF share changes | `broad-etf-shares` | `get_broad_etf_share_changes` |
 
 Multi-asset requests do not require stock initialization. Start with `list_market_instruments` for the requested asset_type and preserve the returned market/type/code identity. Exchange instruments require an explicit market or prefix: never apply A-share prefix guessing to ETFs, indices or bonds. Fund directory entries use otc for NAV identity and may include listed funds; this does not imply OTC subscription eligibility. Keep NAV separate from OHLC prices, IOPV separate from published NAV, and conversion triggers separate from redemption announcements. Preserve paging, stale/offline warnings and quote dates. New assets are queried on demand in namespaced JSON caches, not included in stock screening, chart rendering, pattern scans or trading backtests. Bond coverage is SH/SZ exchange quotes only, may include convertibles, and has no interbank/yield/ratings coverage.
 

@@ -1,6 +1,6 @@
 # 多品种基础数据
 
-新增五个 MCP 工具，提供按需查询，不需要执行股票初始化。
+这些 MCP 工具提供按需查询，无需执行股票初始化。
 
 | 工具 | 功能 |
 |---|---|
@@ -8,6 +8,7 @@
 | `get_market_quote` | 在品种目录中确认市场和代码后返回行情 |
 | `get_market_kline` | 指数、ETF/LOF、可转债日／周／月未复权 K 线；普通债券历史尚未接入 |
 | `get_fund_nav` | 分页历史单位净值、累计净值、日增长率、申购／赎回状态 |
+| `get_broad_etf_share_changes` | 沪深交易所披露份额、带符号的增减份数及变化百分比 |
 | `get_convertible_bond_info` | 行情、正股关联、转股价／价值／溢价率、纯债价值及条款参考触发价 |
 
 ## 标的身份和示例
@@ -19,11 +20,21 @@
 {"tool":"get_market_quote","arguments":{"symbol":"sh510300","asset_type":"etf"}}
 {"tool":"get_market_kline","arguments":{"symbol":"sh000001","asset_type":"index","start_date":"2026-01-01","period":"weekly","limit":100}}
 {"tool":"get_fund_nav","arguments":{"symbol":"000001","start_date":"2026-01-01","page":1,"page_size":100}}
+{"tool":"get_broad_etf_share_changes","arguments":{}}
+{"tool":"get_broad_etf_share_changes","arguments":{"symbols":["sh510300","sz159919"],"start_date":"2026-11-12","end_date":"2026-11-13"}}
 {"tool":"get_convertible_bond_info","arguments":{"symbol":"sh110076"}}
 {"tool":"list_market_instruments","arguments":{"asset_type":"bond","page":1,"page_size":100}}
 ```
 
 `asset_type` 允许 index/etf/lof/fund/convertible_bond/bond。列表与净值 `page` 为 1–1000，`page_size` 为 1–100。K 线 `period` 为 daily/weekly/monthly，`limit` 为 1–2000。日期使用 YYYY-MM-DD，开始默认 2020-01-01，结束默认上海时区今天。K 线只返回区间内最多 limit 根，固定未复权。
+
+## 宽基 ETF 份额变化
+
+省略 `symbols` 时，工具读取沪深交易所批量份额披露，按返回的 `classification.index_families` 匹配境内股票宽基 ETF。沪市优先匹配交易所基金目录的标的指数，深市按份额报表简称匹配。简称无法判定以及未收录指数可能遗漏。行业、主题、风格和增强产品均在默认统计范围之外。
+
+默认从各交易所近 14 个自然日的报表中选最近两个有效披露日。传入 `start_date` 和 `end_date` 时精确匹配日期。汇总只纳入两端均有披露的产品，按同一对日期汇总。沪深日期不一致时分别输出，`coverage` 给出各市场匹配和可比较的只数。份额统一按「份」返回。
+
+上交所统计的是当日清算后的份额，深交所总份额来自基金规模报表。查询上一交易日可在次日北京时间 08:30 左右复查，具体以两所报表的统计日为准。绘制每日沪深总份额时，每个点只使用两所均有披露的统计日，并标明每日匹配范围。 [上交所 ETF 规模](https://www.sse.com.cn/market/funddata/volumn/etfvolumn/) · [深交所基金列表](https://fund.szse.cn/marketdata/fundslist/index.html) · [Tushare 更新时点说明](https://tushare.pro/document/2?doc_id=408)
 
 ## 来源、缓存与覆盖
 
