@@ -25,7 +25,8 @@
     "AGENTS.md",
     "ARCHITECTURE.md",
     "CLAUDE.md",
-    "LICENSE"
+    "LICENSE",
+    "docs/futures-data.md"
   ],
   "scripts": {
     "postinstall": "node bin/stock-analysis.js postinstall",
@@ -98,7 +99,10 @@
       "get_broad_etf_share_changes",
       "get_convertible_bond_info",
       "get_stock_holdings",
-      "search_institution_holdings"
+      "search_institution_holdings",
+      "list_futures_products",
+      "get_futures_quotes",
+      "get_futures_kline"
     ]
   },
   "publishConfig": {

@@ -35,6 +35,7 @@ Call `get_data_status` before market-wide work or when freshness matters.
 | Global macro and market news context | `stock-analysis-global-markets` | `get_global_market_news` |
 | A-share multi-source financial download, metrics and peers | `stock-analysis-financials` | `download_stock_financials`, `analyze_stock_financials` |
 | Index, ETF/LOF, fund NAV, convertible and exchange bond queries | This router; see `docs/multi-asset-data.md` | `list_market_instruments`, `get_market_quote`, `get_market_kline`, `get_fund_nav`, `get_convertible_bond_info` |
+| Domestic commodity, stock-index and treasury futures | This router; see `docs/futures-data.md` | `list_futures_products`, `get_futures_quotes`, `get_futures_kline` |
 | Broad-market ETF share changes | `broad-etf-shares` | `get_broad_etf_share_changes` |
 
 Multi-asset requests do not require stock initialization. Start with `list_market_instruments` for the requested asset_type and preserve the returned market/type/code identity. Exchange instruments require an explicit market or prefix: never apply A-share prefix guessing to ETFs, indices or bonds. Fund directory entries use otc for NAV identity and may include listed funds; this does not imply OTC subscription eligibility. Keep NAV separate from OHLC prices, IOPV separate from published NAV, and conversion triggers separate from redemption announcements. Preserve paging, stale/offline warnings and quote dates. New assets are queried on demand in namespaced JSON caches, not included in stock screening, chart rendering, pattern scans or trading backtests. Bond coverage is SH/SZ exchange quotes only, may include convertibles, and has no interbank/yield/ratings coverage.
@@ -78,3 +79,5 @@ All MCP results use `{data, meta, warnings, error}`. Check `error` first, preser
 | 按完整股东名称反查或季度市场明细 | `search_institution_holdings` |
 
 No history initialization required. Set scope top10 or float_top10; do not sum overlapping scopes or report periods. category filters only the current source page; keep paging based on source_pages/has_more. Disclosures are neither real-time nor exhaustive institutional portfolios. Preserve report_date, announcement_date and source_update_date separately. Distinguish social_security and pension; unknown/other is not an institution. Full-name matching does not merge accounts. offline reads cache only. See docs/institution-holdings.md in the repository.
+
+Futures requests need no stock initialization. Resolve product nodes from the source directory, then dated contracts from quotes. Preserve delayed/stale warnings and available-history bounds. Continuous symbols such as IF0 are source roll series, not tradable contracts. Do not infer a stock-market forecast from futures discounts alone.

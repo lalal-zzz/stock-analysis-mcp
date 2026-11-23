@@ -142,7 +142,7 @@ pip install stock-analysis-mcp
 
 ---
 
-## MCP Tools (36 tools)
+## MCP Tools
 
 | Tool | Module | Purpose |
 |------|--------|---------|
@@ -182,6 +182,22 @@ pip install stock-analysis-mcp
 | `get_convertible_bond_info` | `data/assets` | Underlying stock, conversion price/value/premium and reference trigger prices |
 | `get_stock_holdings` | `data/holdings` | Disclosed top-ten shareholders / tradable shareholders, social-security and pension categories |
 | `search_institution_holdings` | `data/holdings` | Exact holder-name reverse lookup or explicit-quarter market pages |
+| `list_futures_products` | `data/futures` | Source-listed domestic futures products by exchange |
+| `get_futures_quotes` | `data/futures` | Paged contract snapshots, settlement and open interest |
+| `get_futures_kline` | `data/futures` | Contract/continuous daily and recent minute bars |
+
+### Domestic China futures
+
+Query source-listed commodity, stock-index and treasury futures across `shfe`, `ine`, `dce`, `czce`, `cffex` and `gfex`; exchange completeness is not guaranteed.
+
+```text
+list_futures_products(exchange="cffex")
+get_futures_quotes(node="qz_qh", page=1, page_size=100)
+get_futures_kline(symbol="IF0", period="daily", limit=320)
+get_futures_kline(symbol="RB0", period="5", limit=100)
+```
+
+Resolve `node` from the directory, then obtain dated contract codes from quotes. All three tools support `offline=true` and use separate caches without stock initialization. Quotes may be delayed; minute history is bounded. Continuous series are not tradable contracts and may jump at rolls. Inventory, member rankings, margin and fees are not included. See [fields, caching and coverage limits](docs/futures-data.md).
 
 Multi-asset tools query data on demand without stock initialization. Specify the market explicitly, e.g. `sh000001` with `asset_type=index`; fund NAV `000001` has a separate identity. Data uses namespaced JSON caches and is not included in stock screening, pattern scans or backtests. Bond data covers exchange quotes, not interbank bonds or yields. See [multi-asset examples, sources and limits](docs/multi-asset-data.md).
 

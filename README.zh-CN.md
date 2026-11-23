@@ -144,7 +144,7 @@ pip install stock-analysis-mcp
 
 调用 `get_sector_hot_rank(comparison="daily_1430", trade_date="2026-10-21")` 或 CLI `sector-hot-1430 --date 2026-10-21`，只读与前一交易日同窗口的热度差值、热度变化百分比、排名改善及新入/留榜/离榜。漏采前一交易日则差值为null，不拿更早日期代替。来源行情时点未知，获取时刻不等于行情更新时刻。“高热度高涨幅延续两日”仍待历史验证，不能视为已验证套利。详见[采集与比较口径](docs/sector-hot-rank.md)。
 
-## MCP 工具 (36 个)
+## MCP 工具
 
 | 工具 | 功能 |
 |------|------|
@@ -184,8 +184,24 @@ pip install stock-analysis-mcp
 | `get_convertible_bond_info` | 正股关联、转股价／价值／溢价率和条款参考触发价 |
 | `get_stock_holdings` | 个股十大股东／十大流通股东，含社保、养老等分类及报告期、公告日与持股变化 |
 | `search_institution_holdings` | 按股东完整名称反查持股，或指定季度末分页查询市场股东明细 |
+| `list_futures_products` | 国内期货品种目录，可按交易所筛选 |
+| `get_futures_quotes` | 按品种分页查询合约行情、结算价和持仓量 |
+| `get_futures_kline` | 合约及主力连续日线、近期分钟线 |
 
 多品种数据按需查询，无需股票初始化，身份为市场＋品种＋代码。例如 `sh000001` 配合 `asset_type=index` 与基金净值 `000001` 分开缓存。新数据未接入股票筛选、形态扫描或回测。债券先覆盖交易所报价，尚未覆盖银行间、收益率、评级和强赎公告。使用方式、来源和边界见[多品种数据文档](docs/multi-asset-data.md)。
+
+### 国内期货
+
+支持新浪目录提供的商品、股指和国债期货，可按 `shfe`、`ine`、`dce`、`czce`、`cffex`、`gfex` 筛选；不保证交易所全品种覆盖。
+
+```text
+list_futures_products(exchange="cffex")
+get_futures_quotes(node="qz_qh", page=1, page_size=100)
+get_futures_kline(symbol="IF0", period="daily", limit=320)
+get_futures_kline(symbol="RB0", period="5", limit=100)
+```
+
+先从目录取得 `node`，再从行情确认具体月份合约代码。三个工具均支持 `offline=true`，无需初始化股票库，独立缓存。行情可能延迟，分钟线仅有近期窗口，主力连续不可直接交易且可能存在换月跳空；目前不含仓单库存、席位排名、保证金和手续费。见[字段、缓存与覆盖限制](docs/futures-data.md)。
 
 ### 机构披露持仓
 

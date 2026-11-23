@@ -769,6 +769,41 @@ if not hasattr(server, "list_tools"):
                     on_call_tool=_sdk_call_tool)
 
 
+_FUTURES_OFFLINE = {"offline": {"type": "boolean"}}
+
+
+@register("list_futures_products", "中国境内期货品种目录：商品、股指、国债；来源目录不保证交易所全覆盖", {
+    "type": "object", "properties": {**_FUTURES_OFFLINE,
+        "exchange": {"type": "string", "enum": ["shfe", "ine", "dce", "czce", "cffex", "gfex"]}},
+})
+async def _futures_products(exchange=None, offline=False):
+    from .data.futures import list_products
+    return await asyncio.to_thread(list_products, exchange, offline)
+
+
+@register("get_futures_quotes", "按目录node分页查询国内期货合约行情、结算价和持仓量；可能延迟", {
+    "type": "object", "properties": {**_FUTURES_OFFLINE,
+        "node": {"type": "string", "description": "list_futures_products返回的node"},
+        "page": {"type": "integer", "minimum": 1, "maximum": 50},
+        "page_size": {"type": "integer", "minimum": 1, "maximum": 100}}, "required": ["node"],
+})
+async def _futures_quotes(node, page=1, page_size=100, offline=False):
+    from .data.futures import get_quotes
+    return await asyncio.to_thread(get_quotes, node, page, page_size, offline)
+
+
+@register("get_futures_kline", "国内期货合约或主力连续日线/近期分钟线；连续序列不可直接交易，不保证区间完整", {
+    "type": "object", "properties": {**_FUTURES_OFFLINE,
+        "symbol": {"type": "string", "description": "来源期货代码，如IF0、RB0、IF2612；从合约行情确认"},
+        "period": {"type": "string", "enum": ["daily", "1", "5", "15", "30", "60"]},
+        "start_date": {"type": "string"}, "end_date": {"type": "string"},
+        "limit": {"type": "integer", "minimum": 1, "maximum": 2000}}, "required": ["symbol"],
+})
+async def _futures_kline(symbol, period="daily", start_date="2020-01-01", end_date=None, limit=320, offline=False):
+    from .data.futures import get_kline
+    return await asyncio.to_thread(get_kline, symbol, period, start_date, end_date, limit, offline)
+
+
 def main():
     async def run():
         async with stdio_server() as (read_stream, write_stream):

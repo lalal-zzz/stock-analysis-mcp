@@ -170,6 +170,9 @@ The Node shim sets `PYTHONPATH` to include `src/` automatically.
 | `list_market_instruments` | `data/assets` | Paged index, ETF/LOF, fund directory, convertible and SH/SZ exchange bond data |
 | `get_market_quote` | `data/assets` | Market/type/code identity verified in bounded source directory pages |
 | `get_market_kline` | `data/assets` | Unadjusted daily/weekly/monthly index, ETF/LOF and convertible K-lines, separate cache |
+| `list_futures_products` | `data/futures` | Source-listed domestic commodity, stock-index and treasury products by exchange |
+| `get_futures_quotes` | `data/futures` | Paged domestic futures contract snapshots, settlement and open interest |
+| `get_futures_kline` | `data/futures` | Contract/continuous daily and recent minute bars; separate futures:v1 cache |
 | `get_fund_nav` | `data/assets` | Paged unit/accumulated NAV and subscription/redemption status |
 | `get_broad_etf_share_changes` | `data/etf_shares` | Exchange-disclosed domestic broad-index ETF shares, change and coverage by date and benchmark |
 | `get_convertible_bond_info` | `data/assets` | Underlying stock, conversion price/value/premium and reference triggers |
@@ -208,3 +211,5 @@ description: What it does and when to trigger...
 ---
 ```
 This matches the [official skill-creator format](https://github.com/anthropics/claude-plugins-official). `lib/adapters.js` (invoked by `stock-analysis install`) copies them to `<agent>/skills/<skill-id>/SKILL.md` for skill-aware agents — Claude Code: `~/.claude/skills/`, Codex: `~/.codex/skills/`, Qoder: `~/.qoder/skills/`. Cursor and VS Code Copilot only get the MCP server registration (they do not consume SKILL.md).
+
+Domestic futures use `data/futures.py` and `futures:v1:` information-cache keys. No stock initialization or synchronization is required. Source directories may omit exchange products; quotes may be delayed and minute history is bounded. Continuous contracts are source roll series, not tradable instruments. See `docs/futures-data.md`.
